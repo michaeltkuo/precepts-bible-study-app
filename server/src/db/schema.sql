@@ -1,0 +1,51 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS passages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  bible_id INTEGER NOT NULL,
+  usfm TEXT NOT NULL,
+  text TEXT NOT NULL,
+  raw_json TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(bible_id, usfm)
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  passage_ref TEXT NOT NULL,
+  bible_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  passage_text TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  stage_completed INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS highlights (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL,
+  start_offset INTEGER NOT NULL,
+  end_offset INTEGER NOT NULL,
+  category TEXT NOT NULL,
+  note TEXT,
+  verse_ref TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS stage_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL,
+  stage INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(session_id, stage),
+  FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS cross_refs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL,
+  passage_ref TEXT NOT NULL,
+  note TEXT,
+  FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
