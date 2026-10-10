@@ -9,18 +9,18 @@ test("create session and move through stages", async ({ page }) => {
   await expect(page.getByText("Stage 1 Notes")).toBeVisible();
 
   await page.getByPlaceholder("Write your observations for this stage...").fill("Initial observations.");
-  await page.getByRole("button", { name: "Stage 2" }).click();
+  await page.getByRole("button", { name: /^Stage 2/ }).click();
   await expect(page.getByText("Stage 2 Notes")).toBeVisible();
 
-  await page.getByRole("button", { name: "Stage 3" }).click();
+  await page.getByRole("button", { name: /^Stage 3/ }).click();
   await expect(page.getByText("Stage 3 Notes")).toBeVisible();
 
-  await page.getByRole("button", { name: "Stage 4" }).click();
+  await page.getByRole("button", { name: /^Stage 4/ }).click();
   await expect(page.getByText("Stage 4 Notes")).toBeVisible();
 
-  await page.getByRole("button", { name: "Stage 5" }).click();
+  await page.getByRole("button", { name: /^Stage 5/ }).click();
   await expect(page.getByText("Stage 5 Notes")).toBeVisible();
 
-  await page.getByRole("button", { name: "Stage 6" }).click();
+  await page.getByRole("button", { name: /^Stage 6/ }).click();
   await expect(page.getByText("Stage 6 Notes")).toBeVisible();
 });

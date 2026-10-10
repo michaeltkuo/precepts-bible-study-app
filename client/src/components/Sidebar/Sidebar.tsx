@@ -1,3 +1,4 @@
+import { Button, Icon, IconButton, Segmented, SessionItem, useTheme, type ThemePreference } from "../../design-system";
 import type { SessionSummary } from "../../types/study";
 
 type SidebarProps = {
@@ -6,57 +7,63 @@ type SidebarProps = {
   onSelectSession: (id: number) => void;
   onDeleteSession: (id: number) => void;
   onNewStudy: () => void;
+  onClose?: () => void;
 };
 
-export const Sidebar = ({
-  sessions,
-  activeSessionId,
-  onSelectSession,
-  onDeleteSession,
-  onNewStudy,
-}: SidebarProps) => {
+export const Sidebar = ({ sessions, activeSessionId, onSelectSession, onDeleteSession, onNewStudy, onClose }: SidebarProps) => {
+  const { preference, setPreference } = useTheme();
+
   return (
-    <aside className="sidebar" aria-label="Study sessions">
-      <div className="sidebar-header">
-        <h1>Precepts Study</h1>
-        <button type="button" onClick={onNewStudy}>
-          + New Study
-        </button>
+    <aside aria-label="Study sessions" className="flex h-full flex-col gap-4 bg-paper-sunken p-3">
+      <div className="flex items-center justify-between gap-2 px-1">
+        <p className="flex items-center gap-2 font-display text-lg font-medium text-ink">
+          <span className="grid size-7 place-items-center rounded-md bg-ribbon text-sm text-ribbon-ink">
+            <Icon name="bookmark-fill" />
+          </span>
+          Precepts Study
+        </p>
+        {onClose ? <IconButton icon="layout-sidebar" label="Close sidebar" size="sm" onClick={onClose} /> : null}
       </div>
 
-      <ul className="session-list">
-        {sessions.map((session) => (
-          <li key={session.id} className="session-pill-row">
-            <button
-              type="button"
-              className={`session-pill ${session.id === activeSessionId ? "active" : ""}`}
-              onClick={() => onSelectSession(session.id)}
-            >
-              <div className="session-title">{session.title}</div>
-              <div className="session-subtitle">{session.passageRef}</div>
-            </button>
-            <button
-              type="button"
-              className="session-delete"
-              aria-label={`Delete ${session.title}`}
-              title="Delete session"
-              onClick={() => onDeleteSession(session.id)}
-            >
-              <svg
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                fill="currentColor"
-                viewBox="0 0 16 16"
-              >
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0A.5.5 0 0 1 8.5 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
-                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2H5V1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2.5a1 1 0 0 1 1 1ZM6 1v1h4V1H6Zm-2 3v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4H4Z" />
-              </svg>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <Button variant="secondary" size="sm" icon="plus-lg" onClick={onNewStudy} className="w-full">
+        New study
+      </Button>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-1">
+        <p className="px-1 font-ui text-2xs font-semibold uppercase tracking-[0.12em] text-ink-faint">My studies</p>
+        <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
+          {sessions.map((session) => (
+            <li key={session.id} className="group relative">
+              <SessionItem
+                title={session.title}
+                reference={session.passageRef}
+                stage={session.stageCompleted}
+                active={session.id === activeSessionId}
+                onClick={() => onSelectSession(session.id)}
+              />
+              <IconButton
+                icon="trash3"
+                label={`Delete ${session.title}`}
+                size="sm"
+                variant="danger"
+                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
+                onClick={() => onDeleteSession(session.id)}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <Segmented<ThemePreference>
+        label="Colour theme"
+        value={preference}
+        onChange={setPreference}
+        options={[
+          { value: "light", label: "Light", icon: "sun" },
+          { value: "dark", label: "Dark", icon: "moon-stars" },
+          { value: "system", label: "Auto", icon: "circle-half" },
+        ]}
+      />
     </aside>
   );
 };

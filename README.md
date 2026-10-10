@@ -7,7 +7,8 @@ A locally-run web application that guides users through **Kay Arthur's Precepts 
 ## Features
 
 - **6-Stage Inductive Study Flow** — Prayer & First Read → Key Word Marking → 5 W's & H Interrogation → Context & Cross-References → Interpretation → Application
-- **Visual Highlighting** — 10 Precepts-style marking categories (God/Father, Jesus/Messiah, Holy Spirit, People, Sin/Evil, Salvation/Promise, Commands, Location, Time, Contrast Words), each with colour and Unicode symbol, inspired by the [Precepts Scotland marking system](https://www.preceptscotland.org/samples/key_word_marking_symbols.pdf)
+- **Key-Word Marking** — a library of 352 key words with their Precept marks, from Kari King Dent's [A–Z key word symbol sheets](https://karikingdent.com/key-word-symbols/), with the words Precept Ministries International suggests flagged as core. Each mark is a recipe of up to five pencil strokes (wash, outline, underline, symbol, modifier), so any hand-drawn mark can be represented
+- **Smart Marking** — select a word and the toolbar suggests the library marks that fit, including whole phrases ("eternal life"); type to search all key words; mark every occurrence in the passage at once; "Also in this passage" lists key words you haven't marked yet; tap a key word to trace it through the passage
 - **LLM Guidance** — Ollama (`deepseek-r1:8b`) acts as a Socratic study facilitator — asking questions, not giving answers; `<think>` tags are stripped before display
 - **Session History** — sidebar history of all past studies, session creation locked to a single translation to preserve highlight offsets
 - **Stale Stage Regeneration** — navigating back and editing an earlier stage marks downstream AI guidance stale; regeneration happens automatically on stage entry or on demand
@@ -68,7 +69,7 @@ npm run dev
 
 ### Design System
 
-The new "Study Desk" design system lives in `client/src/design-system/` (Tailwind v4 tokens in `styles.css`, components in `components/`). With `npm run dev` running, open <http://localhost:5173/design-system.html> to browse colours, type, Precepts marks and components in light and dark. The existing study screens have not been moved onto it yet.
+The "Study Desk" design system lives in `client/src/design-system/` (Tailwind v4 tokens in `styles.css`, components in `components/`). Key-word data and matching live in `client/src/marking/`, and the study screen's marking UI in `client/src/study/`. With `npm run dev` running, open <http://localhost:5173/design-system.html> to browse colours, type, components and the full key-word library in light and dark. Without a YouVersion key, use "Try with John 3:16–18" on the study screen.
 
 ### Quality Gate (before push)
 
@@ -79,8 +80,8 @@ npm run test:e2e
 ```
 
 Current baseline on this repository:
-- Unit/integration: 16 passing (10 client + 6 server)
-- E2E: 4 Playwright scenarios
+- Unit/integration: 39 passing (33 client + 6 server)
+- E2E: 5 Playwright scenarios
 
 ---
 

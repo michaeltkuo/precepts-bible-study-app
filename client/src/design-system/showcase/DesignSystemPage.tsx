@@ -1,5 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
-import type { MarkCategory } from "../../types/study";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { KEY_WORDS, KEY_WORD_BY_ID, keyWordName, SOURCE_LABEL, type KeyWordSource } from "../../marking/library";
+import { PENCIL_COLORS, type MarkRecipe } from "../../marking/recipe";
+import { MarkingToolbar } from "../../study/MarkingToolbar";
+import { PassagePane } from "../../study/PassagePane";
+import type { HighlightMark } from "../../types/study";
 import {
   Badge,
   Banner,
@@ -10,14 +14,9 @@ import {
   Heading,
   Icon,
   IconButton,
-  Kbd,
-  MARKS,
-  MarkChip,
-  MarkSwatch,
+  KeyWordSample,
   Rule,
-  ScripturePassage,
   Segmented,
-  SelectionToolbar,
   SessionItem,
   StageStepper,
   Surface,
@@ -26,13 +25,14 @@ import {
   useTheme,
   type ThemePreference,
 } from "..";
-import { JOHN_3_16_18, SAMPLE_QUESTIONS, SAMPLE_SESSIONS } from "./sample";
+import { JOHN_3_16_18, JOHN_MARKS, SAMPLE_QUESTIONS, SAMPLE_SESSIONS } from "./sample";
 
 const SECTIONS = [
   { id: "preview", label: "Study screen" },
   { id: "color", label: "Colour" },
   { id: "type", label: "Type" },
-  { id: "marks", label: "Marks" },
+  { id: "marks", label: "Key words" },
+  { id: "library", label: "Library" },
   { id: "components", label: "Components" },
   { id: "principles", label: "Principles" },
 ];
@@ -86,9 +86,8 @@ export const DesignSystemPage = () => {
 
         <Section id="preview" eyebrow="Putting it together" title="The study screen">
           <p className="mb-6 max-w-2xl text-ink-muted">
-            A proposed layout built only from the pieces below. Stages move to a slim path across the top, the passage
-            takes the centre, and the right margin holds the current stage. Marking happens in a toolbar over your
-            selection, so there's no tools column.
+            The real study components with sample data. Select any word in the passage to see suggested marks, type to
+            search the library, or use “Mark all”. Tap a key word under the passage to trace it.
           </p>
           <StudyScreenPreview />
         </Section>
@@ -102,7 +101,11 @@ export const DesignSystemPage = () => {
         </Section>
 
         <Section id="marks" eyebrow="Precepts" title="Key-word marks">
-          <MarkSystem />
+          <MarkAnatomy />
+        </Section>
+
+        <Section id="library" eyebrow="Precepts" title="Key-word library">
+          <LibrarySheet />
         </Section>
 
         <Section id="components" eyebrow="Library" title="Components">
@@ -140,16 +143,11 @@ const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string
 
 const StudyScreenPreview = () => {
   const [stage, setStage] = useState<1 | 2 | 3 | 4 | 5 | 6>(2);
-  const [focus, setFocus] = useState<MarkCategory | null>(null);
-  const counts = JOHN_3_16_18.flatMap((v) => v.segments).reduce<Partial<Record<MarkCategory, number>>>((acc, s) => {
-    if (typeof s !== "string") acc[s.category] = (acc[s.category] ?? 0) + 1;
-    return acc;
-  }, {});
+  const [marks, setMarks] = useState<HighlightMark[]>(JOHN_MARKS);
 
   return (
     <div className="overflow-hidden rounded-lg border border-rule-strong bg-paper shadow-float">
       <div className="grid lg:grid-cols-[13.5rem_minmax(0,1fr)_20rem]">
-        {/* Sidebar */}
         <aside className="hidden flex-col gap-4 border-r border-rule bg-paper-sunken p-3 lg:flex">
           <div className="flex items-center justify-between px-1">
             <span className="font-display text-base font-medium">My studies</span>
@@ -165,43 +163,26 @@ const StudyScreenPreview = () => {
           </div>
         </aside>
 
-        {/* Centre: stepper + passage */}
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-3 border-b border-rule px-4 py-2.5">
             <StageStepper current={stage} completed={1} stale={[4]} onSelect={setStage} />
           </div>
-          <div className="relative px-5 py-8 sm:px-10">
-            <ScripturePassage reference="John 3:16–18" translation="NASB 2020" verses={JOHN_3_16_18} focusCategory={focus} />
-            <div className="mx-auto mt-8 flex max-w-[38rem] flex-wrap gap-1.5">
-              {MARKS.filter((m) => counts[m.category]).map((m) => (
-                <MarkChip
-                  key={m.category}
-                  category={m.category}
-                  count={counts[m.category]}
-                  pressed={focus === m.category}
-                  onClick={() => setFocus(focus === m.category ? null : m.category)}
-                />
-              ))}
-            </div>
-            <div className="mx-auto mt-6 flex max-w-[38rem] justify-center">
-              <SelectionToolbar />
-            </div>
-            <p className="mt-2 text-center font-ui text-xs text-ink-faint">Selection toolbar, shown here pinned for review</p>
+          <div className="px-5 py-8 sm:px-10">
+            <PassagePane reference="John 3:16–18" translation="NASB 2020" text={JOHN_3_16_18} marks={marks} onMarksChange={setMarks} />
           </div>
         </div>
 
-        {/* Right margin: current stage */}
         <aside className="flex flex-col gap-5 border-t border-rule bg-paper-raised p-5 lg:border-t-0 lg:border-l">
           <div className="flex flex-col gap-1">
             <Eyebrow>Stage {stage} of 6</Eyebrow>
             <Heading level={3} className="text-xl">
               Mark key words & themes
             </Heading>
-            <p className="text-sm text-ink-muted">Select a word in the passage and choose a mark. Look for repeated words, people, and contrasts.</p>
+            <p className="text-sm text-ink-muted">Select a word to see suggested marks. Use “All” to mark every occurrence at once.</p>
           </div>
           <GuidanceCard questions={SAMPLE_QUESTIONS} />
           <Field id="preview-notes" label="Your notes">
-            <TextArea id="preview-notes" defaultValue="“World” shows up three times in two verses. God loves it, doesn't send the Son to judge it, wants it saved." />
+            <TextArea id="preview-notes" defaultValue="“World” shows up four times in two verses. God loves it, doesn't send the Son to judge it, wants it saved." />
           </Field>
           <div className="flex items-center justify-between gap-2">
             <Button variant="ghost" size="sm" icon="arrow-left">
@@ -358,38 +339,143 @@ const TypeSpecimens = () => (
   </div>
 );
 
-/* ── Marks ────────────────────────────────────────────────────────────── */
+/* ── Key-word marks ───────────────────────────────────────────────── */
 
-const MarkSystem = () => {
-  const [focus, setFocus] = useState<MarkCategory | null>(null);
-  return (
-    <div className="flex flex-col gap-8">
-      <p className="max-w-2xl text-ink-muted">
-        One set of marks replaces the current two (ten categories plus 22 generic styles). Each mark has a colour wash
-        like a coloured pencil and the workbook symbol above the word. Places and times are underlined instead, so they
-        still read when they overlap a coloured word. Tap a chip to trace one theme through the passage.
-      </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        {MARKS.map((mark, i) => (
-          <button
-            key={mark.category}
-            type="button"
-            onClick={() => setFocus(focus === mark.category ? null : mark.category)}
-            aria-pressed={focus === mark.category}
-            className="flex cursor-pointer flex-col gap-2 rounded-md border border-rule bg-paper-raised p-3 text-left transition-colors hover:border-rule-strong aria-pressed:border-ink"
-          >
-            <span className="flex items-center justify-between">
-              <MarkSwatch category={mark.category} />
-              <Kbd>{(i + 1) % 10}</Kbd>
+const ANATOMY: Array<{ title: string; body: string; examples: Array<[string, MarkRecipe]> }> = [
+  {
+    title: "Wash",
+    body: "A coloured-pencil fill. One colour, or two side by side.",
+    examples: [
+      ["nations", { wash: "green" }],
+      ["coming of the Lord", { wash: ["sky", "yellow"] }],
+    ],
+  },
+  {
+    title: "Outline",
+    body: "Box, double box, oval, dashed, brackets, cloud, bubble, banner, slant, arrow, jagged, roof, arch, canopy, bowl, table, castle.",
+    examples: [
+      ["bless", { wash: "pink", outline: { shape: "cloud", color: "blue" } }],
+      ["believe", { wash: "green", outline: { shape: "banner", color: "blue" } }],
+      ["remnant", { outline: { shape: "slant", color: "blue" } }],
+      ["tabernacle", { wash: "sky", outline: { shape: "roof", color: "blue" } }],
+    ],
+  },
+  {
+    title: "Underline",
+    body: "Single, double, dotted, dashed, wavy, zigzag, scalloped.",
+    examples: [
+      ["Greece", { underline: { style: "double", color: "green" } }],
+      ["Jordan", { underline: { style: "wavy", color: "blue" } }],
+      ["conjure", { wash: "yellow", underline: { style: "zigzag", color: "black" } }],
+    ],
+  },
+  {
+    title: "Symbol",
+    body: "Above, over, before, after or at both ends. Precept glyphs, any of 2,000 icons, or letters.",
+    examples: [
+      ["God", { symbol: { glyph: "p:triangle", color: "purple", placement: "over", fill: "yellow" } }],
+      ["blood", { symbol: { glyph: "bi:droplet-fill", color: "red", placement: "above" } }],
+      ["Elijah", { symbol: { glyph: "t:E", color: "blue", placement: "over" } }],
+      ["but", { symbol: { glyph: "p:angle", color: "red", placement: "before" } }],
+    ],
+  },
+  {
+    title: "Modifier",
+    body: "A slash for “not”, a strike, an X, or arrows at both ends.",
+    examples: [
+      ["unholy", { wash: "yellow", outline: { shape: "bubble", color: "purple" }, modifiers: [{ kind: "slash", color: "purple" }] }],
+      ["desolate", { modifiers: [{ kind: "strike", color: "red" }] }],
+      ["dedicate", { modifiers: [{ kind: "arrowsUp", color: "purple" }] }],
+    ],
+  },
+];
+
+const MarkAnatomy = () => (
+  <div className="flex flex-col gap-8">
+    <p className="max-w-2xl text-ink-muted">
+      Every mark is a recipe of up to five pencil strokes, combined freely. That's how the 352 key words in the library
+      are drawn, and it's what custom marks will be built from later.
+    </p>
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {ANATOMY.map((part) => (
+        <Surface key={part.title} className="flex flex-col gap-3 p-4">
+          <div>
+            <h3 className="font-display text-lg font-medium">{part.title}</h3>
+            <p className="text-xs leading-snug text-ink-muted">{part.body}</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            {part.examples.map(([text, recipe]) => (
+              <KeyWordSample key={text} recipe={recipe} text={text} className="text-lg" />
+            ))}
+          </div>
+        </Surface>
+      ))}
+    </div>
+    <div className="flex flex-col gap-2">
+      <h3 className="font-display text-lg font-medium">Pencils</h3>
+      <div className="flex flex-wrap gap-2">
+        {PENCIL_COLORS.map((color) => (
+          <div key={color} className="flex items-center gap-2 rounded-md border border-rule bg-paper-raised py-1 pl-1 pr-2.5">
+            <span className="grid size-7 place-items-center rounded-sm" style={{ background: `var(--pencil-${color}-wash)` }}>
+              <span className="size-3 rounded-full" style={{ background: `var(--pencil-${color})` }} />
             </span>
-            <span className="font-ui text-sm font-semibold">{mark.label}</span>
-            <span className="text-xs leading-snug text-ink-muted">{mark.hint}</span>
-          </button>
+            <span className="font-ui text-sm font-semibold capitalize">{color}</span>
+          </div>
         ))}
       </div>
-      <Surface className="px-6 py-8 sm:px-10">
-        <ScripturePassage reference="John 3:16–18" translation="NASB 2020" verses={JOHN_3_16_18} focusCategory={focus} />
-      </Surface>
+    </div>
+  </div>
+);
+
+const SOURCES: Array<KeyWordSource | "all"> = ["all", "precept", "kkd", "general"];
+
+/** Every key word in the library, for checking against the printed A–Z sheets. */
+const LibrarySheet = () => {
+  const [query, setQuery] = useState("");
+  const [source, setSource] = useState<KeyWordSource | "all">("all");
+  const entries = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return [...KEY_WORDS]
+      .filter((kw) => source === "all" || kw.source === source)
+      .filter((kw) => !q || [kw.label, kw.note ?? "", ...kw.aliases].some((n) => n.toLowerCase().includes(q)))
+      .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  }, [query, source]);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <p className="max-w-2xl text-ink-muted">
+        Transcribed from Kari King Dent's A–Z key word symbol sheets (karikingdent.com), with the words Precept Ministries
+        International suggests marked as Precept. Words in brackets share the same mark. Compare against the printed sheets
+        and note anything that looks off.
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <Segmented<KeyWordSource | "all">
+          label="Source"
+          value={source}
+          onChange={setSource}
+          options={SOURCES.map((s) => ({ value: s, label: s === "all" ? `All ${KEY_WORDS.length}` : SOURCE_LABEL[s] }))}
+        />
+        <TextInput
+          id="library-search"
+          aria-label="Search the library"
+          placeholder="Search key words…"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          className="h-8 w-56 text-sm"
+        />
+        <span className="font-ui text-sm tabular-nums text-ink-faint">{entries.length} shown</span>
+      </div>
+      <ul className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+        {entries.map((kw) => (
+          <li key={kw.id} className="flex min-w-0 items-baseline gap-2 border-b border-rule py-1">
+            <KeyWordSample recipe={kw.recipe} text={kw.label} className="shrink-0 text-base" />
+            <span className="min-w-0 flex-1 truncate font-ui text-xs text-ink-muted" title={keyWordName(kw)}>
+              {[kw.note, kw.aliases.length ? `(${kw.aliases.join(", ")})` : ""].filter(Boolean).join(" ")}
+            </span>
+            {kw.source === "precept" ? <Badge tone="gilt">Precept</Badge> : null}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
@@ -493,8 +579,21 @@ const ComponentGallery = () => {
         </div>
       </Demo>
 
-      <Demo title="Selection toolbar" note="Appears over selected text. Number keys apply a mark." wide>
-        <SelectionToolbar />
+      <Demo title="Marking toolbar" note="Opens over a selection. Shown for “believes”: suggestions first, search below, recent and by-meaning marks at the bottom." wide>
+        <div className="relative h-[27rem] w-full">
+          <MarkingToolbar
+            text={JOHN_3_16_18}
+            selection={{ start: JOHN_3_16_18.indexOf("believes"), end: JOHN_3_16_18.indexOf("believes") + 8 }}
+            recent={[KEY_WORD_BY_ID.god, KEY_WORD_BY_ID.world]}
+            existing={[]}
+            countFor={() => 2}
+            onApply={() => undefined}
+            onMarkAll={() => undefined}
+            onRemove={() => undefined}
+            onClose={() => undefined}
+            style={{ top: 0, left: 0 }}
+          />
+        </div>
       </Demo>
 
       <Demo title="Study guide" note="Ready, then out of date. It asks questions; it doesn't give answers.">

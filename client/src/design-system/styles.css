@@ -8,7 +8,7 @@
  * Every colour is a CSS variable defined on :root (light), then redefined for
  * dark mode both for the OS preference and for an explicit data-theme choice.
  * Tailwind utilities read those variables through @theme inline, so
- * `bg-paper`, `text-ink`, `border-rule`, `bg-mark-god` etc. follow the theme.
+ * `bg-paper`, `text-ink`, `border-rule` etc. follow the theme.
  */
 @import "tailwindcss";
 
@@ -71,28 +71,33 @@
   --focus: #3a6ea5;
   --shadow-color: 32 22 12;
 
-  /* Precepts marking palette ("coloured pencils").
-     --mark-X is the highlight wash; --mark-X-ink is the symbol / underline. */
-  --mark-god: #f6df86;
-  --mark-god-ink: #866500;
-  --mark-jesus: #e0cbe9;
-  --mark-jesus-ink: #6b3f86;
-  --mark-spirit: #c8dff1;
-  --mark-spirit-ink: #2f6a99;
-  --mark-people: #f5d3aa;
-  --mark-people-ink: #93511a;
-  --mark-sin: #f0c6c0;
-  --mark-sin-ink: #9b2e26;
-  --mark-salvation: #d2e5c4;
-  --mark-salvation-ink: #3e6e2e;
-  --mark-commands: #f2cbda;
-  --mark-commands-ink: #973460;
-  --mark-location: transparent;
-  --mark-location-ink: #5f7280;
-  --mark-time: transparent;
-  --mark-time-ink: #85634a;
-  --mark-contrast: #c5e3de;
-  --mark-contrast-ink: #2b6e66;
+  /* Precept marking pencils: --pencil-X draws strokes and symbols,
+     --pencil-X-wash is the highlighter-style fill. */
+  --pencil-yellow: #a88300;
+  --pencil-yellow-wash: #f6e08a;
+  --pencil-orange: #bd5f17;
+  --pencil-orange-wash: #f8cfa1;
+  --pencil-red: #b0261f;
+  --pencil-red-wash: #f3bab3;
+  --pencil-pink: #bf3f7b;
+  --pencil-pink-wash: #f5c8dc;
+  --pencil-purple: #6d3c95;
+  --pencil-purple-wash: #ddc8ea;
+  --pencil-blue: #2456a4;
+  --pencil-blue-wash: #c0d2f0;
+  --pencil-sky: #2a80b2;
+  --pencil-sky-wash: #c8e4f3;
+  --pencil-green: #47872a;
+  --pencil-green-wash: #d0e6be;
+  --pencil-forest: #2d5e3e;
+  --pencil-forest-wash: #bcd6c3;
+  --pencil-brown: #7a5232;
+  --pencil-brown-wash: #e4cfb8;
+  --pencil-gray: #66625c;
+  --pencil-gray-wash: #dad6ce;
+  --pencil-black: #211e1b;
+  --pencil-black-wash: #cbc6bd;
+
 }
 
 /* ── Tokens: dark ("lamplight on walnut") ──────────────────────────────── */
@@ -122,24 +127,30 @@
     --danger-soft: #3d2220;
     --focus: #8fb8e6;
     --shadow-color: 0 0 0;
-    --mark-god: rgb(240 205 90 / 0.3);
-    --mark-god-ink: #f0cd5a;
-    --mark-jesus: rgb(190 150 215 / 0.3);
-    --mark-jesus-ink: #cba9e2;
-    --mark-spirit: rgb(120 175 220 / 0.28);
-    --mark-spirit-ink: #95c4ea;
-    --mark-people: rgb(235 160 90 / 0.28);
-    --mark-people-ink: #efb47c;
-    --mark-sin: rgb(225 120 110 / 0.28);
-    --mark-sin-ink: #ec998f;
-    --mark-salvation: rgb(140 190 120 / 0.28);
-    --mark-salvation-ink: #a9d197;
-    --mark-commands: rgb(225 140 175 / 0.28);
-    --mark-commands-ink: #eaa6c3;
-    --mark-location-ink: #a3b1ba;
-    --mark-time-ink: #c9a78b;
-    --mark-contrast: rgb(110 190 180 / 0.26);
-    --mark-contrast-ink: #91d2c8;
+    --pencil-yellow: #f0cd5a;
+    --pencil-yellow-wash: rgb(240 205 90 / 0.3);
+    --pencil-orange: #f2a868;
+    --pencil-orange-wash: rgb(240 160 95 / 0.28);
+    --pencil-red: #f08c82;
+    --pencil-red-wash: rgb(235 115 105 / 0.28);
+    --pencil-pink: #efa0c4;
+    --pencil-pink-wash: rgb(235 140 180 / 0.28);
+    --pencil-purple: #c9a8e6;
+    --pencil-purple-wash: rgb(185 145 225 / 0.3);
+    --pencil-blue: #93b3ef;
+    --pencil-blue-wash: rgb(120 155 235 / 0.3);
+    --pencil-sky: #92cfee;
+    --pencil-sky-wash: rgb(120 195 235 / 0.26);
+    --pencil-green: #a2d184;
+    --pencil-green-wash: rgb(140 200 110 / 0.26);
+    --pencil-forest: #83c299;
+    --pencil-forest-wash: rgb(100 170 125 / 0.28);
+    --pencil-brown: #d1a682;
+    --pencil-brown-wash: rgb(195 150 110 / 0.28);
+    --pencil-gray: #b6b1a8;
+    --pencil-gray-wash: rgb(170 165 155 / 0.28);
+    --pencil-black: #ebe3d6;
+    --pencil-black-wash: rgb(232 225 212 / 0.16);
   }
 }
 
@@ -168,24 +179,30 @@
   --danger-soft: #3d2220;
   --focus: #8fb8e6;
   --shadow-color: 0 0 0;
-  --mark-god: rgb(240 205 90 / 0.3);
-  --mark-god-ink: #f0cd5a;
-  --mark-jesus: rgb(190 150 215 / 0.3);
-  --mark-jesus-ink: #cba9e2;
-  --mark-spirit: rgb(120 175 220 / 0.28);
-  --mark-spirit-ink: #95c4ea;
-  --mark-people: rgb(235 160 90 / 0.28);
-  --mark-people-ink: #efb47c;
-  --mark-sin: rgb(225 120 110 / 0.28);
-  --mark-sin-ink: #ec998f;
-  --mark-salvation: rgb(140 190 120 / 0.28);
-  --mark-salvation-ink: #a9d197;
-  --mark-commands: rgb(225 140 175 / 0.28);
-  --mark-commands-ink: #eaa6c3;
-  --mark-location-ink: #a3b1ba;
-  --mark-time-ink: #c9a78b;
-  --mark-contrast: rgb(110 190 180 / 0.26);
-  --mark-contrast-ink: #91d2c8;
+  --pencil-yellow: #f0cd5a;
+  --pencil-yellow-wash: rgb(240 205 90 / 0.3);
+  --pencil-orange: #f2a868;
+  --pencil-orange-wash: rgb(240 160 95 / 0.28);
+  --pencil-red: #f08c82;
+  --pencil-red-wash: rgb(235 115 105 / 0.28);
+  --pencil-pink: #efa0c4;
+  --pencil-pink-wash: rgb(235 140 180 / 0.28);
+  --pencil-purple: #c9a8e6;
+  --pencil-purple-wash: rgb(185 145 225 / 0.3);
+  --pencil-blue: #93b3ef;
+  --pencil-blue-wash: rgb(120 155 235 / 0.3);
+  --pencil-sky: #92cfee;
+  --pencil-sky-wash: rgb(120 195 235 / 0.26);
+  --pencil-green: #a2d184;
+  --pencil-green-wash: rgb(140 200 110 / 0.26);
+  --pencil-forest: #83c299;
+  --pencil-forest-wash: rgb(100 170 125 / 0.28);
+  --pencil-brown: #d1a682;
+  --pencil-brown-wash: rgb(195 150 110 / 0.28);
+  --pencil-gray: #b6b1a8;
+  --pencil-gray-wash: rgb(170 165 155 / 0.28);
+  --pencil-black: #ebe3d6;
+  --pencil-black-wash: rgb(232 225 212 / 0.16);
 }
 
 /* ── Tailwind theme: map tokens to utilities ───────────────────────────── */
@@ -213,26 +230,6 @@
   --color-danger-soft: var(--danger-soft);
   --color-focus: var(--focus);
 
-  --color-mark-god: var(--mark-god);
-  --color-mark-god-ink: var(--mark-god-ink);
-  --color-mark-jesus: var(--mark-jesus);
-  --color-mark-jesus-ink: var(--mark-jesus-ink);
-  --color-mark-spirit: var(--mark-spirit);
-  --color-mark-spirit-ink: var(--mark-spirit-ink);
-  --color-mark-people: var(--mark-people);
-  --color-mark-people-ink: var(--mark-people-ink);
-  --color-mark-sin: var(--mark-sin);
-  --color-mark-sin-ink: var(--mark-sin-ink);
-  --color-mark-salvation: var(--mark-salvation);
-  --color-mark-salvation-ink: var(--mark-salvation-ink);
-  --color-mark-commands: var(--mark-commands);
-  --color-mark-commands-ink: var(--mark-commands-ink);
-  --color-mark-location: var(--mark-location);
-  --color-mark-location-ink: var(--mark-location-ink);
-  --color-mark-time: var(--mark-time);
-  --color-mark-time-ink: var(--mark-time-ink);
-  --color-mark-contrast: var(--mark-contrast);
-  --color-mark-contrast-ink: var(--mark-contrast-ink);
 }
 
 @theme {
@@ -315,60 +312,148 @@
   }
 }
 
-/* ── Precepts marks (applied to spans inside scripture) ────────────────── */
+
+/* ── Key-word marks (see components/KeyWordMark.tsx) ───────────────────
+ * Three layers: the wash and CSS outlines on the mark itself, drawn outlines
+ * and symbols as positioned overlays above it, and the text (.kw-text,
+ * z-index 1) on top so pencil strokes never cover a letter. */
 @layer components {
-  .mark {
-    --mark-bg: transparent;
-    --mark-ink: currentColor;
+  .kw {
     position: relative;
-    background: var(--mark-bg);
+    background: var(--kw-wash, transparent);
     border-radius: 2px;
-    padding: 0.05em 0.12em;
-    margin: 0 -0.06em;
+    padding: 0.03em 0.1em;
+    margin: 0 -0.03em;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
+    text-underline-offset: 0.24em;
+    text-decoration-skip-ink: none;
   }
 
-  /* The Precepts symbol sits above the start of the word, like a pencil mark. */
-  .mark[data-symbol]::before {
-    content: attr(data-symbol);
+  .kw[data-outline="box"] { border: 1.5px solid var(--kw-outline); }
+  .kw[data-outline="double"] { border: 3.5px double var(--kw-outline); }
+  .kw[data-outline="rounded"] { border: 1.5px solid var(--kw-outline); border-radius: 0.45em; }
+  .kw[data-outline="oval"] { border: 1.5px solid var(--kw-outline); border-radius: 999px; padding-inline: 0.32em; }
+  .kw[data-outline="dashed"] { border: 1.5px dashed var(--kw-outline); }
+  .kw[data-outline="brackets"] {
+    border-inline: 2px solid var(--kw-outline);
+    border-radius: 0.55em / 50%;
+    padding-inline: 0.28em;
+  }
+
+  .kw[data-underline] {
+    text-decoration-line: underline;
+    text-decoration-color: var(--kw-underline);
+    text-decoration-thickness: 1.5px;
+  }
+  .kw[data-underline="double"] { text-decoration-style: double; text-decoration-thickness: 1px; }
+  .kw[data-underline="dotted"] { text-decoration-style: dotted; text-decoration-thickness: 2px; }
+  .kw[data-underline="dashed"] { text-decoration-style: dashed; }
+  .kw[data-underline="wavy"] { text-decoration-style: wavy; text-decoration-thickness: 1px; }
+  .kw[data-underline="zigzag"],
+  .kw[data-underline="scallop"] { text-decoration-line: none; }
+
+  .kw-ul {
     position: absolute;
-    left: 0.05em;
-    top: -0.9em;
-    font-family: var(--font-ui);
-    font-size: 0.56em;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--mark-ink);
+    left: 0;
+    right: 0;
+    bottom: -0.32em;
+    height: 0.38em;
+    background: var(--kw-underline);
+    mask-repeat: repeat-x;
+    mask-size: 0.55em 100%;
     pointer-events: none;
   }
-
-  .mark-god { --mark-bg: var(--mark-god); --mark-ink: var(--mark-god-ink); }
-  .mark-jesus { --mark-bg: var(--mark-jesus); --mark-ink: var(--mark-jesus-ink); }
-  .mark-holySpirit { --mark-bg: var(--mark-spirit); --mark-ink: var(--mark-spirit-ink); }
-  .mark-people { --mark-bg: var(--mark-people); --mark-ink: var(--mark-people-ink); }
-  .mark-sin { --mark-bg: var(--mark-sin); --mark-ink: var(--mark-sin-ink); }
-  .mark-salvation { --mark-bg: var(--mark-salvation); --mark-ink: var(--mark-salvation-ink); }
-  .mark-commands { --mark-bg: var(--mark-commands); --mark-ink: var(--mark-commands-ink); }
-  .mark-contrast { --mark-bg: var(--mark-contrast); --mark-ink: var(--mark-contrast-ink); }
-
-  /* Location and time are underlined rather than washed, as in the workbooks. */
-  .mark-location {
-    --mark-ink: var(--mark-location-ink);
-    text-decoration: underline dotted var(--mark-location-ink) 2px;
-    text-underline-offset: 0.28em;
+  .kw-ul[data-pattern="zigzag"] {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 6'%3E%3Cpath d='M0 5 L2 1 L4 5 L6 1 L8 5' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E");
   }
-  .mark-time {
-    --mark-ink: var(--mark-time-ink);
-    text-decoration: underline dashed var(--mark-time-ink) 1.5px;
-    text-underline-offset: 0.28em;
+  .kw-ul[data-pattern="scallop"] {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 6'%3E%3Cpath d='M0 1 Q2 7 4 1 Q6 7 8 1' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E");
   }
 
-  .mark.is-dimmed {
-    background: transparent;
-    text-decoration-color: transparent;
+  .kw-text { position: relative; z-index: 1; }
+
+  .kw-shape {
+    position: absolute;
+    inset: -0.24em -0.34em;
+    pointer-events: none;
   }
-  .mark.is-dimmed::before {
-    opacity: 0.25;
+  .kw-shape[data-pos="top"] { inset: -0.9em -0.3em auto; height: 0.95em; }
+  .kw-shape[data-pos="wrap"] { inset: -0.42em -0.42em -0.18em; }
+  .kw-shape svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .kw-shape path {
+    fill: none;
+    stroke: var(--kw-outline);
+    stroke-width: 1.6px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
   }
+
+  .kw-sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--kw-sym);
+    line-height: 1;
+    font-style: normal;
+    pointer-events: none;
+    user-select: none;
+  }
+  .kw-sym svg { width: 1em; height: 1em; overflow: visible; }
+  .kw-sym .g-stroke { fill: none; stroke: currentColor; stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+  .kw-sym .g-fill { fill: var(--kw-sym-fill); stroke: none; }
+  .kw-sym[data-glyph]::before {
+    content: attr(data-glyph);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .kw-sym[data-place="above"] {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translate(-50%, 0.2em);
+    font-size: 0.62em;
+  }
+  .kw-sym[data-place="over"] {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -52%);
+    font-size: 1.4em;
+    opacity: 0.8;
+  }
+  /* Filled icons and letters drawn behind a word stay faint enough to read through. */
+  .kw-sym[data-place="over"][data-kind="bi"] { font-size: 1.25em; opacity: 0.38; }
+  .kw-sym[data-place="over"][data-kind="t"] { font-size: 1.35em; opacity: 0.42; }
+  .kw-sym[data-place="before"],
+  .kw-sym[data-place="after"] { font-size: 0.72em; margin-inline: 0.14em; vertical-align: 0.08em; }
+
+  .kw-mod {
+    position: absolute;
+    inset: -0.12em -0.16em;
+    pointer-events: none;
+  }
+  .kw-mod svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .kw-mod line { stroke: var(--kw-mod); stroke-width: 1.75px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .kw-arrow {
+    position: absolute;
+    bottom: 0.1em;
+    font-size: 0.85em;
+    line-height: 1;
+    color: var(--kw-mod);
+    pointer-events: none;
+    user-select: none;
+  }
+  .kw-arrow[data-side="start"] { left: -0.55em; }
+  .kw-arrow[data-side="end"] { right: -0.55em; }
+
+  /* Fade marks outside the key word being traced, keep the text readable. */
+  .kw.is-dimmed { background: transparent; border-color: transparent; text-decoration-color: transparent; }
+  .kw.is-dimmed > .kw-shape,
+  .kw.is-dimmed > .kw-sym,
+  .kw.is-dimmed > .kw-mod,
+  .kw.is-dimmed > .kw-arrow,
+  .kw.is-dimmed > .kw-ul { opacity: 0.15; }
 }

@@ -1,9 +1,29 @@
 import type { ReactNode } from "react";
-import type { MarkCategory } from "../../types/study";
 import { cn } from "../cn";
-import { MARKS } from "../marks";
 import { Icon } from "./Icon";
-import { MarkSwatch } from "./Marks";
+
+type GuidanceBlock = { kind: "list"; items: string[] } | { kind: "text"; text: string };
+
+/** Split model output into paragraphs and bullet/numbered lists. */
+const parseGuidance = (content: string): GuidanceBlock[] => {
+  const blocks: GuidanceBlock[] = [];
+  for (const raw of content.split(/\n+/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const bullet = line.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
+    const clean = (bullet ? bullet[1] : line).replace(/\*\*(.+?)\*\*/g, "$1");
+    const last = blocks[blocks.length - 1];
+    if (bullet) {
+      if (last?.kind === "list") last.items.push(clean);
+      else blocks.push({ kind: "list", items: [clean] });
+    } else {
+      blocks.push({ kind: "text", text: clean });
+    }
+  }
+  return blocks;
+};
+
+export type GuidanceStatus = "ready" | "thinking" | "stale" | "offline" | "idle";
 
 /**
  * The AI facilitator's questions. Set in the reading face with a gilt rule so
@@ -12,45 +32,65 @@ import { MarkSwatch } from "./Marks";
 export const GuidanceCard = ({
   status = "ready",
   questions,
+  content,
+  idleText = "Questions for this stage appear here.",
   onRegenerate,
 }: {
-  status?: "ready" | "thinking" | "stale" | "offline";
-  questions: string[];
+  status?: GuidanceStatus;
+  questions?: string[];
+  content?: string;
+  idleText?: string;
   onRegenerate?: () => void;
-}) => (
-  <section aria-label="Study guide questions" className="rounded-md border-l-2 border-gilt bg-gilt-soft/45 py-3.5 pl-4 pr-3">
-    <div className="mb-2 flex items-center justify-between gap-2">
-      <p className="flex items-center gap-1.5 font-ui text-xs font-semibold uppercase tracking-[0.12em] text-gilt">
-        <Icon name="feather" /> Study guide
+}) => {
+  const blocks: GuidanceBlock[] = questions ? [{ kind: "list", items: questions }] : content ? parseGuidance(content) : [];
+  return (
+    <section aria-label="Study guide questions" className="rounded-md border-l-2 border-gilt bg-gilt-soft/45 py-3.5 pl-4 pr-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 font-ui text-xs font-semibold uppercase tracking-[0.12em] text-gilt">
+          <Icon name="feather" /> Study guide
+        </p>
+        {status === "thinking" ? (
+          <span className="flex items-center gap-1.5 font-ui text-xs text-ink-muted" role="status">
+            <span className="size-1.5 animate-pulse rounded-full bg-gilt" /> Thinking…
+          </span>
+        ) : (status === "stale" || status === "offline" || (status === "ready" && blocks.length > 0)) && onRegenerate ? (
+          <button
+            type="button"
+            onClick={onRegenerate}
+            className={cn(
+              "flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 font-ui text-xs font-semibold",
+              status === "ready" ? "text-ink-faint hover:bg-paper-sunken hover:text-ink" : "text-warn hover:bg-warn-soft",
+            )}
+          >
+            <Icon name="arrow-clockwise" /> {status === "offline" ? "Try again" : status === "stale" ? "Refresh questions" : "New questions"}
+          </button>
+        ) : null}
+      </div>
+      {status === "offline" ? (
+        <p className="font-ui text-sm text-ink-muted">The study guide can't reach Ollama. Check that it's running, then try again.</p>
+      ) : blocks.length === 0 ? (
+        <p className="font-ui text-sm text-ink-muted">{status === "thinking" ? "Reading the passage and your marks…" : idleText}</p>
+      ) : (
+        <div className={cn("flex flex-col gap-2 font-scripture text-base leading-7 text-ink", status === "thinking" && "opacity-50")}>
+          {blocks.map((block, i) =>
+            block.kind === "list" ? (
+              <ol key={i} className="flex list-decimal flex-col gap-2 pl-5 marker:font-ui marker:text-sm marker:text-gilt">
+                {block.items.map((item, j) => (
+                  <li key={j}>{item}</li>
+                ))}
+              </ol>
+            ) : (
+              <p key={i}>{block.text}</p>
+            ),
+          )}
+        </div>
+      )}
+      <p className="mt-3 font-ui text-xs text-ink-faint">
+        AI questions can carry denominational assumptions. Test them against the text.
       </p>
-      {status === "thinking" ? (
-        <span className="flex items-center gap-1.5 font-ui text-xs text-ink-muted">
-          <span className="size-1.5 animate-pulse rounded-full bg-gilt" /> Thinking…
-        </span>
-      ) : status === "stale" || status === "offline" ? (
-        <button
-          type="button"
-          onClick={onRegenerate}
-          className="flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 font-ui text-xs font-semibold text-warn hover:bg-warn-soft"
-        >
-          <Icon name="arrow-clockwise" /> {status === "stale" ? "Refresh questions" : "Try again"}
-        </button>
-      ) : null}
-    </div>
-    {status === "offline" ? (
-      <p className="font-ui text-sm text-ink-muted">The study guide can't reach Ollama. Check that it's running, then try again.</p>
-    ) : (
-      <ol className={cn("flex list-decimal flex-col gap-2 pl-5 font-scripture text-base leading-7 text-ink marker:font-ui marker:text-sm marker:text-gilt", status === "thinking" && "opacity-50")}>
-        {questions.map((q) => (
-          <li key={q}>{q}</li>
-        ))}
-      </ol>
-    )}
-    <p className="mt-3 font-ui text-xs text-ink-faint">
-      AI questions can carry denominational assumptions. Test them against the text.
-    </p>
-  </section>
-);
+    </section>
+  );
+};
 
 /** One row in the study history list. */
 export const SessionItem = ({
@@ -84,56 +124,6 @@ export const SessionItem = ({
       <span aria-hidden>·</span>
       <span>{stage === 6 ? "Complete" : `Stage ${stage} of 6`}</span>
     </span>
-  </button>
-);
-
-/**
- * Floating palette that appears over a text selection. Ten Precepts marks,
- * plus clear and note. Keys 1–0 map to the marks in order.
- */
-export const SelectionToolbar = ({
-  onMark,
-  onClear,
-  onNote,
-  className,
-}: {
-  onMark?: (category: MarkCategory) => void;
-  onClear?: () => void;
-  onNote?: () => void;
-  className?: string;
-}) => (
-  <div
-    role="toolbar"
-    aria-label="Mark selection"
-    className={cn("inline-flex flex-wrap items-center gap-0.5 rounded-lg border border-rule bg-paper-overlay p-1 shadow-float", className)}
-  >
-    {MARKS.map((mark, i) => (
-      <button
-        key={mark.category}
-        type="button"
-        onClick={() => onMark?.(mark.category)}
-        title={`${mark.label} (${(i + 1) % 10})`}
-        aria-label={`Mark as ${mark.label}`}
-        className="grid size-9 cursor-pointer place-items-center rounded-md hover:bg-paper-sunken"
-      >
-        <MarkSwatch category={mark.category} />
-      </button>
-    ))}
-    <span aria-hidden className="mx-1 h-6 w-px bg-rule" />
-    <ToolbarButton icon="chat-square-text" label="Add note" onClick={onNote} />
-    <ToolbarButton icon="eraser" label="Clear marks" onClick={onClear} />
-  </div>
-);
-
-const ToolbarButton = ({ icon, label, onClick }: { icon: string; label: string; onClick?: () => void }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    title={label}
-    aria-label={label}
-    className="grid size-9 cursor-pointer place-items-center rounded-md text-ink-muted hover:bg-paper-sunken hover:text-ink"
-  >
-    <Icon name={icon} />
   </button>
 );
 

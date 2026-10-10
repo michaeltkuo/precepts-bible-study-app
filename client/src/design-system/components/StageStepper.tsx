@@ -33,6 +33,7 @@ export const StageStepper = ({ current, completed, stale = [], onSelect, classNa
               type="button"
               onClick={() => onSelect?.(stage.id)}
               aria-current={isCurrent ? "step" : undefined}
+              aria-label={`Stage ${stage.id}: ${stage.short}${isStale ? " (out of date)" : ""}`}
               title={`Stage ${stage.id}: ${stage.title}${isStale ? " (guidance out of date)" : ""}`}
               className={cn(
                 "group relative flex items-center gap-2 rounded-md px-2.5 py-1.5 font-ui text-sm transition-colors cursor-pointer",
@@ -51,7 +52,7 @@ export const StageStepper = ({ current, completed, stale = [], onSelect, classNa
               </span>
               <span className={cn("font-semibold", isCurrent ? "inline" : "hidden @[36rem]:inline")}>{stage.short}</span>
               {isStale ? (
-                <span className="absolute right-1 top-1 size-2 rounded-full bg-warn ring-2 ring-paper" aria-label="Out of date" />
+                <span aria-hidden className="absolute right-1 top-1 size-2 rounded-full bg-warn ring-2 ring-paper" />
               ) : null}
             </button>
           </li>

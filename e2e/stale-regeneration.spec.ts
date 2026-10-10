@@ -71,23 +71,21 @@ test("stale stages auto-regenerate when visiting a stale stage", async ({ page }
   await page.getByRole("button", { name: "Load" }).click();
   await expect(page.getByText("Stage 1 Notes")).toBeVisible();
 
-  await page.getByRole("button", { name: "Stage 3" }).click();
+  await page.getByRole("button", { name: /^Stage 3/ }).click();
   await expect(page.getByText("Stage 3 Notes")).toBeVisible();
 
-  await page.getByRole("button", { name: "Stage 1" }).click();
+  await page.getByRole("button", { name: /^Stage 1/ }).click();
   await expect(page.getByText("Stage 1 Notes")).toBeVisible();
 
   await page.getByPlaceholder("Write your observations for this stage...").fill("Updated stage 1 observations");
 
-  await expect(page.getByText(/5 stage\(s\) are stale/)).toBeVisible();
+  await expect(page.getByText("5 stages are out of date")).toBeVisible();
 
-  const stage2Button = page.getByRole("button", { name: /Stage 2/ });
-  await expect(stage2Button.getByText("stale")).toBeVisible();
-
-  await stage2Button.click();
+  await expect(page.getByRole("button", { name: "Stage 2: Mark (out of date)" })).toBeVisible();
+  await page.getByRole("button", { name: /^Stage 2: Mark/ }).click();
   await expect(page.getByText("Stage 2 Notes")).toBeVisible();
 
   await expect.poll(() => llmCalls).toBeGreaterThan(0);
-  await expect(stage2Button.getByText("stale")).toHaveCount(0);
-  await expect(page.getByText(/4 stage\(s\) are stale/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stage 2: Mark (out of date)" })).toHaveCount(0);
+  await expect(page.getByText("4 stages are out of date")).toBeVisible();
 });

@@ -1,60 +1,44 @@
-import type { ScriptureVerse } from "../components/Scripture";
+import type { PassageMark } from "../components/Scripture";
+import { JOHN_3_16_18 } from "../../study/samplePassage";
 
-/** John 3:16–18 (NASB 2020), pre-marked the way a student might in Stage 2. */
-export const JOHN_3_16_18: ScriptureVerse[] = [
-  {
-    number: 16,
-    segments: [
-      "For ",
-      { text: "God", category: "god" },
-      " so loved ",
-      { text: "the world", category: "people" },
-      ", that He gave His only ",
-      { text: "Son", category: "jesus" },
-      ", so that everyone who ",
-      { text: "believes", category: "commands" },
-      " in Him will not ",
-      { text: "perish", category: "sin" },
-      ", ",
-      { text: "but", category: "contrast" },
-      " have ",
-      { text: "eternal life", category: "salvation" },
-      ".",
-    ],
-  },
-  {
-    number: 17,
-    segments: [
-      "For ",
-      { text: "God", category: "god" },
-      " did not send ",
-      { text: "the Son", category: "jesus" },
-      " ",
-      { text: "into the world", category: "location" },
-      " to ",
-      { text: "judge", category: "sin" },
-      " the world, ",
-      { text: "but", category: "contrast" },
-      " so that the world might be ",
-      { text: "saved", category: "salvation" },
-      " through Him.",
-    ],
-  },
-  {
-    number: 18,
-    segments: [
-      "The one who ",
-      { text: "believes", category: "commands" },
-      " in Him is not judged; the one who does not believe has ",
-      { text: "already", category: "time" },
-      " been ",
-      { text: "judged", category: "sin" },
-      ", because he has not believed in the name of the only ",
-      { text: "Son of God", category: "jesus" },
-      ".",
-    ],
-  },
+export { JOHN_3_16_18 };
+
+/** Marks a student might add in Stage 2, as [phrase, key word id, which occurrence]. */
+const MARKED: Array<[string, string, number?]> = [
+  ["God", "god", 0],
+  ["loved", "love"],
+  ["world", "world", 0],
+  ["believes", "believe", 0],
+  ["perish", "perish"],
+  ["but", "but", 0],
+  ["eternal life", "eternal-life"],
+  ["God", "god", 1],
+  ["world", "world", 1],
+  ["judge", "judge", 0],
+  ["world", "world", 2],
+  ["but", "but", 1],
+  ["world", "world", 3],
+  ["saved", "salvation"],
+  ["believes", "believe", 1],
+  ["judged", "judge", 0],
+  ["already", "references-to-time"],
+  ["judged", "judge", 1],
+  ["God", "god", 2],
 ];
+
+const nthIndex = (text: string, phrase: string, n: number) => {
+  let index = -1;
+  for (let i = 0; i <= n; i += 1) {
+    index = text.indexOf(phrase, index + 1);
+    while (index >= 0 && /\w/.test(text[index - 1] ?? "") ) index = text.indexOf(phrase, index + 1);
+  }
+  return index;
+};
+
+export const JOHN_MARKS: PassageMark[] = MARKED.map(([phrase, keywordId, n = 0], i) => {
+  const start = nthIndex(JOHN_3_16_18, phrase, n);
+  return { id: `s${i}`, startOffset: start, endOffset: start + phrase.length, keywordId };
+});
 
 export const SAMPLE_QUESTIONS = [
   "What does verse 16 say God did because He loved the world?",

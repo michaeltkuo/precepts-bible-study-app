@@ -445,7 +445,7 @@ These items are out of scope for the initial build but should be tracked:
 
 | Item | Notes |
 |---|---|
-| Mobile / responsive layout | Sidebar → hamburger, stage panel → bottom drawer. Use Tailwind breakpoints from day 1 to ease this |
+| Mobile / responsive layout | Done for the basics in the "Study Desk" revamp (sidebar drawer, stacked columns). Stage panel as a bottom drawer still open |
 | Stage Guide panel redesign | Retained for POC. After use, consider inline LLM guidance within each stage rather than a persistent right-hand panel |
 | Multi-translation support | Allow translation switching between sessions; add a comparison view for same passage in multiple translations |
 | Denomination preference / custom system prompt | Let user set a denominational lens (Reformed, Catholic, Charismatic, etc.) that modifies the LLM system prompt |
@@ -454,3 +454,18 @@ These items are out of scope for the initial build but should be tracked:
 | Study sharing | Export a session as a shareable JSON bundle that another user can import |
 | Group study mode | Multiple users annotating the same passage; requires proper auth and a shared DB |
 | Additional Bible translations | Expand beyond Lockman license to include ESV, NIV, KJV depending on licensing |
+
+### Key-word marking TODOs
+
+The key-word system (October 2026) is a recipe of up to five pencil strokes: wash, outline, underline, symbol, modifier. See `client/src/marking/`. Open items:
+
+| Item | Notes |
+|---|---|
+| Ask Kari King Dent before sharing the app | Her sheets are offered for personal use and free sharing with a link back to karikingdent.com. Email her about including the A–Z library in a free app, with credit and a link. The library is tagged by source (`precept`, `kkd`) so her pack can be switched off if needed |
+| Check the app name | "Precept Upon Precept" is a Precept Ministries International brand. Consider a distinct name with "inspired by the Precept method" before any public release |
+| Custom marks editor | Build and edit recipes in the UI (source `custom`), saved to SQLite, plus editing a library mark to taste. The data model already supports it |
+| Review the transcription | 352 key words were transcribed from the hand-drawn A–Z sheets. Check them against the PDFs using the library sheet on `/design-system.html`; some drawings were ambiguous |
+| Per-book key word lists | Kari King Dent publishes a sheet per book of the Bible. Suggest that book's key words first when studying it |
+| Save marks on the server | Marks are saved per study in browser storage today. Move them to the `highlights` table (add a `keyword_id` column) |
+| Verse numbers | Style verse numbers in the passage text (small gilt superscripts) once the YouVersion text format is confirmed |
+

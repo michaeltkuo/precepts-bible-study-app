@@ -8,8 +8,8 @@ describe("highlight persistence", () => {
 
   it("saves and reloads offsets without mutation", () => {
     const marks = [
-      { id: "h1", startOffset: 5, endOffset: 15, category: "god" as const },
-      { id: "h2", startOffset: 30, endOffset: 36, category: "time" as const },
+      { id: "h1", startOffset: 5, endOffset: 15, keywordId: "god" },
+      { id: "h2", startOffset: 30, endOffset: 36, keywordId: "references-to-time" },
     ];
 
     saveHighlights(7, marks);

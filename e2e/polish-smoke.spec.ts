@@ -13,5 +13,5 @@ test("keyboard stage navigation works", async ({ page }) => {
 
 test("bias disclosure note is visible", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText(/AI note: Suggestions can carry denominational assumptions/)).toBeVisible();
+  await expect(page.getByText(/AI questions can carry denominational assumptions/)).toBeVisible();
 });

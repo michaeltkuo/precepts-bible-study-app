@@ -1,52 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import "./App.css";
-import { PassageView } from "./components/PassageView/PassageView";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import { StageGuide } from "./components/StageGuide/StageGuide";
 import { VerseInput } from "./components/VerseInput/VerseInput";
-import { useHighlight } from "./hooks/useHighlight";
+import { Banner, Button, Eyebrow, Heading, IconButton, StageStepper, type GuidanceStatus } from "./design-system";
+import { loadHighlights, saveHighlights } from "./hooks/highlightPersistence";
 import { useLLM } from "./hooks/useLLM";
 import { useSession } from "./hooks/useSession";
 import { useStudyStore } from "./store/useStudyStore";
-import type { HighlightVisualStyle, MarkCategory, StageId } from "./types/study";
-
-const STYLE_PRESETS: Array<{ id: HighlightVisualStyle; label: string; sample: string }> = [
-  { id: "highlight-yellow", label: "Yellow Highlight", sample: "Aa" },
-  { id: "highlight-blue", label: "Blue Highlight", sample: "Aa" },
-  { id: "highlight-green", label: "Green Highlight", sample: "Aa" },
-  { id: "highlight-orange", label: "Orange Highlight", sample: "Aa" },
-  { id: "highlight-pink", label: "Pink Highlight", sample: "Aa" },
-  { id: "highlight-purple", label: "Purple Highlight", sample: "Aa" },
-  { id: "highlight-red", label: "Red Highlight", sample: "Aa" },
-  { id: "underline", label: "Underline", sample: "Aa" },
-  { id: "double-underline", label: "Double Underline", sample: "Aa" },
-  { id: "wavy-underline", label: "Wavy Underline", sample: "Aa" },
-  { id: "strike", label: "Strikethrough", sample: "Aa" },
-  { id: "bold", label: "Bold", sample: "Aa" },
-  { id: "all-caps", label: "All Caps", sample: "aa" },
-  { id: "box", label: "Box", sample: "Aa" },
-  { id: "double-box", label: "Double Box", sample: "Aa" },
-  { id: "brackets", label: "Brackets", sample: "Aa" },
-  { id: "left-bar", label: "Left Margin Bar", sample: "Aa" },
-  { id: "left-pointer", label: "Left Pointer", sample: "Aa" },
-  { id: "inline-pointers", label: "Inline Pointers", sample: "Aa" },
-  { id: "exclamation", label: "Exclamation", sample: "Aa" },
-  { id: "question", label: "Question", sample: "Aa" },
-  { id: "shadow", label: "Shadow", sample: "Aa" },
-];
-
-const CATEGORY_ORDER: MarkCategory[] = [
-  "god",
-  "jesus",
-  "holySpirit",
-  "people",
-  "sin",
-  "salvation",
-  "commands",
-  "location",
-  "time",
-  "contrast",
-];
+import { PassagePane } from "./study/PassagePane";
+import { JOHN_3_16_18 } from "./study/samplePassage";
+import type { HighlightMark, StageId } from "./types/study";
 
 const SAMPLE_SESSIONS = [
   {
@@ -58,69 +21,7 @@ const SAMPLE_SESSIONS = [
   },
 ];
 
-const STAGE_COPY: Record<
-  StageId,
-  {
-    title: string;
-    goal: string;
-    instructions: string[];
-  }
-> = {
-  1: {
-    title: "Prayer, Intent & First Read",
-    goal: "Observe the passage without interpreting it yet.",
-    instructions: [
-      "Read the passage once without highlighting anything.",
-      "Write a short first impression in Stage Notes.",
-      "Ask: what stands out immediately in the text?",
-    ],
-  },
-  2: {
-    title: "Mark Key Words & Themes",
-    goal: "Capture repeated words, themes, and key actions.",
-    instructions: [
-      "Select text in the passage to open the pop-up tool box.",
-      "Use the tool icons to mark key words and themes.",
-      "Focus on repeated ideas, commands, people, and contrasts.",
-    ],
-  },
-  3: {
-    title: "5 W's & H Interrogation",
-    goal: "Interrogate the passage with concrete questions.",
-    instructions: [
-      "Use Stage Notes to answer Who, What, Where, When, Why, How.",
-      "Keep answers tied to exact words in the passage.",
-      "Use the stage guidance below to probe your marked words.",
-    ],
-  },
-  4: {
-    title: "Context & Cross-References",
-    goal: "Add nearby context and supporting references.",
-    instructions: [
-      "Note surrounding context from the same chapter/book.",
-      "Record any cross-references that clarify this passage.",
-      "Pay close attention to contrast words and logical connectors.",
-    ],
-  },
-  5: {
-    title: "Interpretation",
-    goal: "Form interpretation only after observation is complete.",
-    instructions: [
-      "Summarize what the text means from your observations.",
-      "Avoid jumping ahead of the passage evidence.",
-      "Use guidance to test your interpretation for consistency.",
-    ],
-  },
-  6: {
-    title: "Application",
-    goal: "Turn interpretation into a personal response.",
-    instructions: [
-      "Write one concrete application for this week.",
-      "Identify a command to obey, promise to trust, or principle to live.",
-      "Keep application specific and measurable.",
-    ],
-  },
-};
+type SessionDetail = { id: number; passage_ref: string; bible_id: number; passage_text: string };
 
 function App() {
   const {
@@ -142,120 +43,105 @@ function App() {
     clearAllStaleStages,
   } = useStudyStore();
 
-  const [recentCategories, setRecentCategories] = useState<MarkCategory[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadingPassage, setLoadingPassage] = useState(false);
   const [stageNotes, setStageNotes] = useState<Record<number, string>>({});
   const [guidanceByStage, setGuidanceByStage] = useState<Record<number, string>>({});
-  const [showToolsReference, setShowToolsReference] = useState(true);
-  const [selectedStyle, setSelectedStyle] = useState<HighlightVisualStyle>("highlight-yellow");
-  const [activeSelection, setActiveSelection] = useState<{ start: number; end: number } | null>(null);
+  const [guidanceFailed, setGuidanceFailed] = useState<Record<number, boolean>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
   const denomination = "non-denominational";
 
-  const { addHighlight } = useHighlight(highlights, setHighlights);
   const { loading, requestGuidance } = useLLM();
   const { loadSessions, deleteSession } = useSession();
 
-  const sortedSessions = useMemo(() => {
-    if (sessions.length > 0) {
-      return sessions;
-    }
-    return SAMPLE_SESSIONS;
-  }, [sessions]);
+  const sortedSessions = useMemo(() => (sessions.length > 0 ? sessions : SAMPLE_SESSIONS), [sessions]);
+
+  const resetStudyState = useCallback(() => {
+    setStageNotes({});
+    setGuidanceByStage({});
+    setGuidanceFailed({});
+    clearAllStaleStages();
+    setCurrentStage(1);
+  }, [clearAllStaleStages, setCurrentStage]);
 
   const handleLoadPassage = async (normalizedReference: string, nextWarning?: string) => {
     setWarning(nextWarning ?? null);
+    setLoadError(null);
+    setLoadingPassage(true);
 
-    const response = await fetch(
-      `/api/verse?bibleId=${encodeURIComponent(String(bibleId))}&usfm=${encodeURIComponent(normalizedReference)}`
-    );
+    try {
+      const response = await fetch(
+        `/api/verse?bibleId=${encodeURIComponent(String(bibleId))}&usfm=${encodeURIComponent(normalizedReference)}`,
+      );
+      if (!response.ok) throw new Error();
 
-    if (!response.ok) {
-      throw new Error("Unable to load passage.");
-    }
+      const payload = (await response.json()) as { text: string };
+      setPassage(normalizedReference, payload.text, bibleId);
+      setHighlights([]);
+      resetStudyState();
 
-    const payload = (await response.json()) as { text: string };
-    setPassage(normalizedReference, payload.text, bibleId);
+      const created = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ passageRef: normalizedReference, bibleId, title: `Study ${normalizedReference}`, passageText: payload.text }),
+      });
 
-    const title = `Study ${normalizedReference}`;
-    const created = await fetch("/api/sessions", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        passageRef: normalizedReference,
-        bibleId,
-        title,
-        passageText: payload.text,
-      }),
-    });
-
-    if (created.ok) {
-      const body = (await created.json()) as { session: { id: number } };
-      setActiveSessionId(body.session.id);
-      await loadSessions();
+      if (created.ok) {
+        const body = (await created.json()) as { session: { id: number } };
+        setActiveSessionId(body.session.id);
+        await loadSessions().catch(() => undefined);
+      }
+    } catch {
+      setLoadError(
+        `Couldn't load ${normalizedReference}. Check the reference, and that the server is running with a YouVersion API key.`,
+      );
+    } finally {
+      setLoadingPassage(false);
     }
   };
 
-  const quickCategories = useMemo<MarkCategory[]>(() => {
-    const recentUnique = recentCategories.filter(
-      (category, index) => recentCategories.indexOf(category) === index
-    );
-    const fallback = CATEGORY_ORDER.filter((category) => !recentUnique.includes(category));
-    return [...recentUnique, ...fallback].slice(0, 5);
-  }, [recentCategories]);
+  const handleSelectSession = async (id: number) => {
+    setSidebarOpen(false);
+    setActiveSessionId(id);
+    try {
+      const response = await fetch(`/api/sessions/${id}`);
+      if (!response.ok) return;
+      const { session } = (await response.json()) as { session: SessionDetail };
+      setPassage(session.passage_ref, session.passage_text, session.bible_id);
+      setHighlights(loadHighlights(id));
+      resetStudyState();
+    } catch {
+      // Server offline: keep the selection so the list still responds.
+    }
+  };
 
-  const handleQuickHighlight = (
-    start: number,
-    end: number,
-    category: MarkCategory,
-    visualStyle: HighlightVisualStyle
-  ) => {
-    addHighlight(start, end, category, visualStyle, { styleOnly: false });
-    setRecentCategories((previous) => [category, ...previous.filter((item) => item !== category)]);
+  const handleNewStudy = () => {
+    setSidebarOpen(false);
+    setActiveSessionId(null);
+    setPassage(passageRef, "", bibleId);
+    setHighlights([]);
+    setWarning(null);
+    setLoadError(null);
+    resetStudyState();
+    window.setTimeout(() => document.getElementById("passage-ref")?.focus(), 0);
+  };
+
+  const handleTrySample = () => {
+    setActiveSessionId(null);
+    setPassage("John 3:16–18", JOHN_3_16_18, bibleId);
+    setHighlights([]);
+    setLoadError(null);
+    resetStudyState();
+    setCurrentStage(2);
+  };
+
+  const handleMarksChange = (next: HighlightMark[]) => {
+    setHighlights(next);
+    if (activeSessionId) saveHighlights(activeSessionId, next);
     markStagesStaleAfter(2);
-  };
-
-  const handleApplyStyleOnly = (start: number, end: number, style: HighlightVisualStyle) => {
-    const category = resolveCategoryForRange(start, end);
-    addHighlight(start, end, category, style, { styleOnly: true });
-    markStagesStaleAfter(2);
-  };
-
-  const resolveCategoryForRange = (start: number, end: number): MarkCategory => {
-    const overlaps = highlights
-      .map((mark) => {
-        const overlapStart = Math.max(start, mark.startOffset);
-        const overlapEnd = Math.min(end, mark.endOffset);
-        const overlapLength = Math.max(0, overlapEnd - overlapStart);
-        return { category: mark.category, overlapLength };
-      })
-      .filter((entry) => entry.overlapLength > 0)
-      .sort((a, b) => b.overlapLength - a.overlapLength);
-
-    return overlaps[0]?.category ?? quickCategories[0] ?? "god";
-  };
-
-  const applyStyleFromPanel = (style: HighlightVisualStyle) => {
-    setSelectedStyle(style);
-    if (!activeSelection) {
-      return;
-    }
-
-    const start = Math.min(activeSelection.start, activeSelection.end);
-    const end = Math.max(activeSelection.start, activeSelection.end);
-    handleApplyStyleOnly(start, end, style);
-  };
-
-  const handleDeleteHighlightRange = (start: number, end: number) => {
-    const rangeStart = Math.min(start, end);
-    const rangeEnd = Math.max(start, end);
-    const next = highlights.filter(
-      (mark) => rangeEnd <= mark.startOffset || rangeStart >= mark.endOffset
-    );
-
-    if (next.length !== highlights.length) {
-      setHighlights(next);
-      markStagesStaleAfter(2);
-    }
   };
 
   const handleDeleteSession = async (id: number) => {
@@ -271,39 +157,35 @@ function App() {
     }
   };
 
-  const currentStageNote = stageNotes[currentStage] ?? "";
-  const currentGuidance =
-    guidanceByStage[currentStage] ??
-    (passageText
-      ? "LLM guidance appears here automatically when you enter this stage."
-      : "Load a passage to begin stage-specific guidance.");
-  const currentStageCopy = STAGE_COPY[currentStage];
-
   const requestStageGuidance = useCallback(
     async (stage: StageId) => {
-      const content = await requestGuidance({
-        stage,
-        passageRef,
-        passageText,
-        highlights,
-        stageNotes: Object.entries(stageNotes).map(([s, content]) => ({
-          stage: Number(s),
-          content,
-        })),
-        denomination,
-      });
-
-      setGuidanceByStage((prev) => ({ ...prev, [stage]: content }));
+      try {
+        const content = await requestGuidance({
+          stage,
+          passageRef,
+          passageText,
+          highlights,
+          stageNotes: Object.entries(stageNotes).map(([s, content]) => ({ stage: Number(s), content })),
+          denomination,
+        });
+        setGuidanceByStage((prev) => ({ ...prev, [stage]: content }));
+        setGuidanceFailed((prev) => ({ ...prev, [stage]: false }));
+        return true;
+      } catch {
+        setGuidanceFailed((prev) => ({ ...prev, [stage]: true }));
+        return false;
+      }
     },
-    [denomination, highlights, passageRef, passageText, requestGuidance, stageNotes]
+    [denomination, highlights, passageRef, passageText, requestGuidance, stageNotes],
   );
 
   const regenerateStaleStages = async () => {
+    setRefreshing(true);
     for (const stage of staleStages) {
       await requestStageGuidance(stage);
     }
-
     clearAllStaleStages();
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -312,179 +194,140 @@ function App() {
     });
   }, [loadSessions]);
 
+  // Fetch guidance when entering a stage that has none, or whose guidance is stale.
   useEffect(() => {
-    if (!passageText || currentStage < 2) {
-      return;
-    }
+    if (!passageText || currentStage < 2) return;
 
     const stage = currentStage;
     const isStale = staleStages.includes(stage);
-    const hasGuidance = Boolean(guidanceByStage[stage]);
-
-    if (!isStale && hasGuidance) {
-      return;
-    }
+    if (!isStale && (guidanceByStage[stage] || guidanceFailed[stage])) return;
 
     let cancelled = false;
-
     void (async () => {
       await requestStageGuidance(stage);
-
-      if (!cancelled && isStale) {
-        clearStaleStage(stage);
-      }
+      if (!cancelled && isStale) clearStaleStage(stage);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [
-    clearStaleStage,
-    currentStage,
-    guidanceByStage,
-    passageRef,
-    passageText,
-    requestStageGuidance,
-    staleStages,
-  ]);
+  }, [clearStaleStage, currentStage, guidanceByStage, guidanceFailed, passageText, requestStageGuidance, staleStages]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey)) {
-        return;
-      }
-
-      if (event.key === "]" && currentStage < 6) {
-        setCurrentStage((currentStage + 1) as StageId);
-      }
-
-      if (event.key === "[" && currentStage > 1) {
-        setCurrentStage((currentStage - 1) as StageId);
-      }
+      if (!(event.metaKey || event.ctrlKey)) return;
+      if (event.key === "]" && currentStage < 6) setCurrentStage((currentStage + 1) as StageId);
+      if (event.key === "[" && currentStage > 1) setCurrentStage((currentStage - 1) as StageId);
     };
-
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [currentStage, setCurrentStage]);
 
-  return (
-    <div className={`app-shell ${showToolsReference ? "with-tools-reference" : ""}`}>
-      <Sidebar
-        sessions={sortedSessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={setActiveSessionId}
-        onDeleteSession={(id) => {
-          void handleDeleteSession(id);
-        }}
-        onNewStudy={() => {
-          setSessions(SAMPLE_SESSIONS);
-          setActiveSessionId(SAMPLE_SESSIONS[0].id);
-        }}
-      />
+  const guidanceStatus: GuidanceStatus = loading
+    ? "thinking"
+    : guidanceFailed[currentStage]
+      ? "offline"
+      : staleStages.includes(currentStage)
+        ? "stale"
+        : guidanceByStage[currentStage]
+          ? "ready"
+          : "idle";
 
-      <main className="study-canvas">
-        <VerseInput onSubmit={handleLoadPassage} />
-        <p className="bias-note" title="This AI assistant may reflect assumptions from published commentary. Verify observations against the text itself.">
-          AI note: Suggestions can carry denominational assumptions. Verify against Scripture text.
-        </p>
+  const completedStage = Math.max(0, ...Object.keys(stageNotes).filter((s) => stageNotes[Number(s)]?.trim()).map(Number));
+
+  return (
+    <div className="min-h-dvh bg-paper text-ink lg:grid lg:h-dvh lg:grid-cols-[15.5rem_minmax(0,1fr)_23rem] lg:overflow-hidden">
+      {/* Sidebar: a column on large screens, a drawer below that. */}
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-[17rem] border-r border-rule shadow-float transition-transform lg:static lg:z-auto lg:w-auto lg:translate-x-0 lg:shadow-none ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <Sidebar
+          sessions={sortedSessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={(id) => void handleSelectSession(id)}
+          onDeleteSession={(id) => void handleDeleteSession(id)}
+          onNewStudy={handleNewStudy}
+          onClose={sidebarOpen ? () => setSidebarOpen(false) : undefined}
+        />
+      </div>
+      {sidebarOpen ? (
         <button
           type="button"
-          className="tools-reference-toggle"
-          onClick={() => setShowToolsReference((previous) => !previous)}
-        >
-          {showToolsReference ? "Hide Tools Reference" : "Show Tools Reference"}
-        </button>
-        {warning ? <p className="warning-banner">{warning}</p> : null}
-
-        {staleStages.length > 0 ? (
-          <div className="warning-banner">
-            {staleStages.length} stage(s) are stale due to earlier edits.
-            <button type="button" onClick={regenerateStaleStages} disabled={loading || !passageText}>
-              Regenerate now
-            </button>
-          </div>
-        ) : null}
-
-        <section className="stage-status-card" aria-label="Current stage guidance">
-          <div className="stage-status-header">
-            <div>
-              <p className="stage-status-kicker">Current Stage</p>
-              <h2>
-                Stage {currentStage}: {currentStageCopy.title}
-              </h2>
-            </div>
-            <span className={`llm-status ${loading ? "thinking" : "idle"}`}>
-              LLM: {loading ? "Thinking" : "Idle"}
-            </span>
-          </div>
-          <p className="stage-status-goal">{currentStageCopy.goal}</p>
-          <ul className="stage-status-list">
-            {currentStageCopy.instructions.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ul>
-
-          <div className="stage-status-llm">
-            <h3>LLM Guidance</h3>
-            <pre className="guidance-output">{currentGuidance}</pre>
-          </div>
-        </section>
-
-        <PassageView
-          passageRef={passageRef}
-          text={passageText}
-          highlights={highlights}
-          quickCategories={quickCategories}
-          selectedStyle={selectedStyle}
-          onQuickHighlight={handleQuickHighlight}
-          onDeleteHighlightsInRange={handleDeleteHighlightRange}
-          onSelectStyle={setSelectedStyle}
-          onSelectionContextChange={setActiveSelection}
+          aria-label="Close sidebar"
+          className="fixed inset-0 z-30 bg-ink/20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
+      ) : null}
 
-        <section className="stage-notes" aria-label="Stage notes">
-          <h2>Stage {currentStage} Notes</h2>
-          <textarea
-            value={currentStageNote}
-            onChange={(event) => {
-              const next = event.target.value;
-              setStageNotes((prev) => ({ ...prev, [currentStage]: next }));
-              markStagesStaleAfter(currentStage);
-            }}
-            placeholder="Write your observations for this stage..."
+      <main ref={mainRef} className="flex min-w-0 flex-col lg:overflow-hidden">
+        <header className="sticky top-0 z-20 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-rule bg-paper/95 px-4 py-2.5 backdrop-blur lg:static">
+          <IconButton icon="list" label="Open sidebar" size="sm" className="lg:hidden" onClick={() => setSidebarOpen(true)} />
+          <StageStepper
+            current={currentStage}
+            completed={completedStage}
+            stale={staleStages}
+            onSelect={setCurrentStage}
+            className="order-last w-full sm:order-none sm:w-auto sm:flex-1"
           />
-        </section>
+          <VerseInput onSubmit={(ref, warn) => void handleLoadPassage(ref, warn)} busy={loadingPassage} className="ml-auto" />
+        </header>
+
+        <div className="flex-1 px-5 py-8 sm:px-10 lg:overflow-y-auto">
+          <div className="mx-auto mb-6 flex max-w-[38rem] flex-col gap-2 empty:hidden">
+            {warning ? <Banner tone="info">{warning}</Banner> : null}
+            {loadError ? (
+              <Banner tone="danger" title="Couldn't load the passage" action={<Button size="sm" onClick={handleTrySample}>Use sample</Button>}>
+                {loadError}
+              </Banner>
+            ) : null}
+          </div>
+
+          <PassagePane
+            reference={passageRef}
+            translation="NASB 2020"
+            text={passageText}
+            marks={highlights}
+            onMarksChange={handleMarksChange}
+            empty={
+              <div className="flex flex-col gap-4 py-10">
+                <Eyebrow>New study</Eyebrow>
+                <Heading level={1} className="text-3xl">
+                  Open a passage to begin.
+                </Heading>
+                <p className="max-w-prose font-scripture text-lg leading-8 text-ink-muted">
+                  Enter a book and chapter above, like <span className="text-ink">JHN.3</span> or{" "}
+                  <span className="text-ink">ROM.8.1-11</span>, and press Load. Precept studies work best one chapter at a time.
+                </p>
+                <div>
+                  <Button variant="secondary" icon="book" onClick={handleTrySample}>
+                    Try with John 3:16–18
+                  </Button>
+                </div>
+              </div>
+            }
+          />
+        </div>
       </main>
 
-      <StageGuide
-        currentStage={currentStage}
-        staleStages={staleStages}
-        onSelectStage={(stage) => setCurrentStage(stage as StageId)}
-      />
-
-      {showToolsReference ? (
-        <aside className="tools-reference-panel" aria-label="Markup tools reference">
-          <h2>Markup Tools</h2>
-
-          <p className="tools-reference-note">
-            Select text in passage, then click any style below to apply immediately.
-          </p>
-
-          <div className="tools-preset-grid" role="group" aria-label="Markup style presets">
-            {STYLE_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className={`tools-preset ${selectedStyle === preset.id ? "active" : ""}`}
-                onClick={() => applyStyleFromPanel(preset.id)}
-              >
-                <span className={`tools-preset-sample style-preview style-${preset.id}`}>{preset.sample}</span>
-                <span className="tools-preset-label">{preset.label}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
-      ) : null}
+      <div className="border-t border-rule bg-paper-raised lg:overflow-y-auto lg:border-t-0 lg:border-l">
+        <StageGuide
+          stage={currentStage}
+          notes={stageNotes[currentStage] ?? ""}
+          onNotesChange={(value) => {
+            setStageNotes((prev) => ({ ...prev, [currentStage]: value }));
+            markStagesStaleAfter(currentStage);
+          }}
+          guidance={guidanceByStage[currentStage]}
+          guidanceStatus={passageText ? guidanceStatus : "idle"}
+          onRegenerate={() => void requestStageGuidance(currentStage)}
+          staleCount={staleStages.length}
+          onRefreshStale={() => void regenerateStaleStages()}
+          refreshing={refreshing}
+          onSelectStage={setCurrentStage}
+        />
+      </div>
     </div>
   );
 }
