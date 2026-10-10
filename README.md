@@ -66,6 +66,10 @@ cp .env.example .env
 npm run dev
 ```
 
+### Design System
+
+The new "Study Desk" design system lives in `client/src/design-system/` (Tailwind v4 tokens in `styles.css`, components in `components/`). With `npm run dev` running, open <http://localhost:5173/design-system.html> to browse colours, type, Precepts marks and components in light and dark. The existing study screens have not been moved onto it yet.
+
 ### Quality Gate (before push)
 
 ```bash

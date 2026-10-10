@@ -1,0 +1,374 @@
+/*
+ * Precepts design system — "The Study Desk"
+ *
+ * Warm and bookish: an open study Bible on a desk. Paper surfaces, ink text,
+ * an oxblood ribbon-bookmark accent and gilt-edge highlights. Dark mode is the
+ * same desk by lamplight (walnut and warm ink), not an inversion.
+ *
+ * Every colour is a CSS variable defined on :root (light), then redefined for
+ * dark mode both for the OS preference and for an explicit data-theme choice.
+ * Tailwind utilities read those variables through @theme inline, so
+ * `bg-paper`, `text-ink`, `border-rule`, `bg-mark-god` etc. follow the theme.
+ */
+@import "tailwindcss";
+
+@import "@fontsource-variable/eb-garamond/wght.css";
+@import "@fontsource-variable/eb-garamond/wght-italic.css";
+@import "@fontsource-variable/literata/wght.css";
+@import "@fontsource-variable/literata/wght-italic.css";
+@import "@fontsource-variable/source-sans-3/wght.css";
+@import "bootstrap-icons/font/bootstrap-icons.min.css";
+
+/* Dark utilities (`dark:`) follow the same three-state rule as the tokens. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/* ── Tokens: light ("daylight on paper") ───────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --paper: #f5efe3; /* the page / desk */
+  --paper-raised: #fbf8f1; /* cards, panels, the open book */
+  --paper-sunken: #ece4d3; /* sidebar, insets, wells */
+  --paper-overlay: #fffdf8; /* popovers, toolbars */
+
+  /* Ink */
+  --ink: #2a211c;
+  --ink-muted: #66574a;
+  --ink-faint: #94846f;
+
+  /* Rules (borders, dividers) */
+  --rule: #ddd1ba;
+  --rule-strong: #c6b698;
+
+  /* Accent: oxblood ribbon bookmark */
+  --ribbon: #8b2a2e;
+  --ribbon-hover: #74221f;
+  --ribbon-ink: #fff8ef;
+  --ribbon-soft: #f3e1dc;
+
+  /* Secondary: gilt page edges */
+  --gilt: #9a7428;
+  --gilt-soft: #f2e7cc;
+
+  /* Semantic states (separate from the accent) */
+  --success: #3d6a37;
+  --success-soft: #e1ebd6;
+  --warn: #8f5a0e;
+  --warn-soft: #f6e6c4;
+  --danger: #a3312b;
+  --danger-soft: #f6dcd8;
+
+  --focus: #3a6ea5;
+  --shadow-color: 32 22 12;
+
+  /* Precepts marking palette ("coloured pencils").
+     --mark-X is the highlight wash; --mark-X-ink is the symbol / underline. */
+  --mark-god: #f6df86;
+  --mark-god-ink: #866500;
+  --mark-jesus: #e0cbe9;
+  --mark-jesus-ink: #6b3f86;
+  --mark-spirit: #c8dff1;
+  --mark-spirit-ink: #2f6a99;
+  --mark-people: #f5d3aa;
+  --mark-people-ink: #93511a;
+  --mark-sin: #f0c6c0;
+  --mark-sin-ink: #9b2e26;
+  --mark-salvation: #d2e5c4;
+  --mark-salvation-ink: #3e6e2e;
+  --mark-commands: #f2cbda;
+  --mark-commands-ink: #973460;
+  --mark-location: transparent;
+  --mark-location-ink: #5f7280;
+  --mark-time: transparent;
+  --mark-time-ink: #85634a;
+  --mark-contrast: #c5e3de;
+  --mark-contrast-ink: #2b6e66;
+}
+
+/* ── Tokens: dark ("lamplight on walnut") ──────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #1a1512;
+    --paper-raised: #231d18;
+    --paper-sunken: #14100d;
+    --paper-overlay: #2c251f;
+    --ink: #ede3d2;
+    --ink-muted: #b2a38f;
+    --ink-faint: #7f715f;
+    --rule: #3a3028;
+    --rule-strong: #52463a;
+    --ribbon: #d9837b;
+    --ribbon-hover: #e69a92;
+    --ribbon-ink: #1a1512;
+    --ribbon-soft: #3b2421;
+    --gilt: #d6b366;
+    --gilt-soft: #392e18;
+    --success: #94bf8a;
+    --success-soft: #24301f;
+    --warn: #e2b064;
+    --warn-soft: #3a2c15;
+    --danger: #ea9187;
+    --danger-soft: #3d2220;
+    --focus: #8fb8e6;
+    --shadow-color: 0 0 0;
+    --mark-god: rgb(240 205 90 / 0.3);
+    --mark-god-ink: #f0cd5a;
+    --mark-jesus: rgb(190 150 215 / 0.3);
+    --mark-jesus-ink: #cba9e2;
+    --mark-spirit: rgb(120 175 220 / 0.28);
+    --mark-spirit-ink: #95c4ea;
+    --mark-people: rgb(235 160 90 / 0.28);
+    --mark-people-ink: #efb47c;
+    --mark-sin: rgb(225 120 110 / 0.28);
+    --mark-sin-ink: #ec998f;
+    --mark-salvation: rgb(140 190 120 / 0.28);
+    --mark-salvation-ink: #a9d197;
+    --mark-commands: rgb(225 140 175 / 0.28);
+    --mark-commands-ink: #eaa6c3;
+    --mark-location-ink: #a3b1ba;
+    --mark-time-ink: #c9a78b;
+    --mark-contrast: rgb(110 190 180 / 0.26);
+    --mark-contrast-ink: #91d2c8;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #1a1512;
+  --paper-raised: #231d18;
+  --paper-sunken: #14100d;
+  --paper-overlay: #2c251f;
+  --ink: #ede3d2;
+  --ink-muted: #b2a38f;
+  --ink-faint: #7f715f;
+  --rule: #3a3028;
+  --rule-strong: #52463a;
+  --ribbon: #d9837b;
+  --ribbon-hover: #e69a92;
+  --ribbon-ink: #1a1512;
+  --ribbon-soft: #3b2421;
+  --gilt: #d6b366;
+  --gilt-soft: #392e18;
+  --success: #94bf8a;
+  --success-soft: #24301f;
+  --warn: #e2b064;
+  --warn-soft: #3a2c15;
+  --danger: #ea9187;
+  --danger-soft: #3d2220;
+  --focus: #8fb8e6;
+  --shadow-color: 0 0 0;
+  --mark-god: rgb(240 205 90 / 0.3);
+  --mark-god-ink: #f0cd5a;
+  --mark-jesus: rgb(190 150 215 / 0.3);
+  --mark-jesus-ink: #cba9e2;
+  --mark-spirit: rgb(120 175 220 / 0.28);
+  --mark-spirit-ink: #95c4ea;
+  --mark-people: rgb(235 160 90 / 0.28);
+  --mark-people-ink: #efb47c;
+  --mark-sin: rgb(225 120 110 / 0.28);
+  --mark-sin-ink: #ec998f;
+  --mark-salvation: rgb(140 190 120 / 0.28);
+  --mark-salvation-ink: #a9d197;
+  --mark-commands: rgb(225 140 175 / 0.28);
+  --mark-commands-ink: #eaa6c3;
+  --mark-location-ink: #a3b1ba;
+  --mark-time-ink: #c9a78b;
+  --mark-contrast: rgb(110 190 180 / 0.26);
+  --mark-contrast-ink: #91d2c8;
+}
+
+/* ── Tailwind theme: map tokens to utilities ───────────────────────────── */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-paper-overlay: var(--paper-overlay);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ribbon: var(--ribbon);
+  --color-ribbon-hover: var(--ribbon-hover);
+  --color-ribbon-ink: var(--ribbon-ink);
+  --color-ribbon-soft: var(--ribbon-soft);
+  --color-gilt: var(--gilt);
+  --color-gilt-soft: var(--gilt-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-focus: var(--focus);
+
+  --color-mark-god: var(--mark-god);
+  --color-mark-god-ink: var(--mark-god-ink);
+  --color-mark-jesus: var(--mark-jesus);
+  --color-mark-jesus-ink: var(--mark-jesus-ink);
+  --color-mark-spirit: var(--mark-spirit);
+  --color-mark-spirit-ink: var(--mark-spirit-ink);
+  --color-mark-people: var(--mark-people);
+  --color-mark-people-ink: var(--mark-people-ink);
+  --color-mark-sin: var(--mark-sin);
+  --color-mark-sin-ink: var(--mark-sin-ink);
+  --color-mark-salvation: var(--mark-salvation);
+  --color-mark-salvation-ink: var(--mark-salvation-ink);
+  --color-mark-commands: var(--mark-commands);
+  --color-mark-commands-ink: var(--mark-commands-ink);
+  --color-mark-location: var(--mark-location);
+  --color-mark-location-ink: var(--mark-location-ink);
+  --color-mark-time: var(--mark-time);
+  --color-mark-time-ink: var(--mark-time-ink);
+  --color-mark-contrast: var(--mark-contrast);
+  --color-mark-contrast-ink: var(--mark-contrast-ink);
+}
+
+@theme {
+  /* Type: display (headings), scripture (reading), ui (controls & labels) */
+  --font-display: "EB Garamond Variable", "EB Garamond", Garamond, "Times New Roman", serif;
+  --font-scripture: "Literata Variable", Literata, Georgia, Cambria, serif;
+  --font-ui: "Source Sans 3 Variable", "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-scripture);
+
+  /* Type scale (UI ~ 1.2 ratio, display headings larger and looser) */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.3rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55rem;
+  --text-scripture: 1.1875rem;
+  --text-scripture--line-height: 2.4rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.625rem;
+  --text-xl--line-height: 2.1rem;
+  --text-2xl: 2.25rem;
+  --text-2xl--line-height: 2.6rem;
+  --text-3xl: 3rem;
+  --text-3xl--line-height: 3.25rem;
+
+  /* Radius: books have soft corners, not pills */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Elevation: paper lifting off the desk */
+  --shadow-page: 0 1px 2px rgb(var(--shadow-color) / 0.06), 0 2px 6px rgb(var(--shadow-color) / 0.05);
+  --shadow-float: 0 2px 4px rgb(var(--shadow-color) / 0.08), 0 10px 28px rgb(var(--shadow-color) / 0.14);
+
+  --ease-turn: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    font-family: var(--font-ui);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--gilt-soft);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Precepts marks (applied to spans inside scripture) ────────────────── */
+@layer components {
+  .mark {
+    --mark-bg: transparent;
+    --mark-ink: currentColor;
+    position: relative;
+    background: var(--mark-bg);
+    border-radius: 2px;
+    padding: 0.05em 0.12em;
+    margin: 0 -0.06em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* The Precepts symbol sits above the start of the word, like a pencil mark. */
+  .mark[data-symbol]::before {
+    content: attr(data-symbol);
+    position: absolute;
+    left: 0.05em;
+    top: -0.9em;
+    font-family: var(--font-ui);
+    font-size: 0.56em;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--mark-ink);
+    pointer-events: none;
+  }
+
+  .mark-god { --mark-bg: var(--mark-god); --mark-ink: var(--mark-god-ink); }
+  .mark-jesus { --mark-bg: var(--mark-jesus); --mark-ink: var(--mark-jesus-ink); }
+  .mark-holySpirit { --mark-bg: var(--mark-spirit); --mark-ink: var(--mark-spirit-ink); }
+  .mark-people { --mark-bg: var(--mark-people); --mark-ink: var(--mark-people-ink); }
+  .mark-sin { --mark-bg: var(--mark-sin); --mark-ink: var(--mark-sin-ink); }
+  .mark-salvation { --mark-bg: var(--mark-salvation); --mark-ink: var(--mark-salvation-ink); }
+  .mark-commands { --mark-bg: var(--mark-commands); --mark-ink: var(--mark-commands-ink); }
+  .mark-contrast { --mark-bg: var(--mark-contrast); --mark-ink: var(--mark-contrast-ink); }
+
+  /* Location and time are underlined rather than washed, as in the workbooks. */
+  .mark-location {
+    --mark-ink: var(--mark-location-ink);
+    text-decoration: underline dotted var(--mark-location-ink) 2px;
+    text-underline-offset: 0.28em;
+  }
+  .mark-time {
+    --mark-ink: var(--mark-time-ink);
+    text-decoration: underline dashed var(--mark-time-ink) 1.5px;
+    text-underline-offset: 0.28em;
+  }
+
+  .mark.is-dimmed {
+    background: transparent;
+    text-decoration-color: transparent;
+  }
+  .mark.is-dimmed::before {
+    opacity: 0.25;
+  }
+}
