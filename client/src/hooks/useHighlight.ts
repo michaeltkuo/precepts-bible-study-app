@@ -1,73 +1,42 @@
-import { useCallback } from "react";
-import type { HighlightMark, HighlightVisualStyle, MarkCategory } from "../types/study";
+import { KEY_WORD_BY_ID, LEGACY_CATEGORY_TO_KEYWORD } from "../marking/library";
+import type { HighlightMark } from "../types/study";
 
-const markId = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+export const markId = () => `${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 8)}`;
 
-export const mergeHighlight = (
-  marks: HighlightMark[],
-  next: Omit<HighlightMark, "id">
-): HighlightMark[] => {
-  const sameCategory = marks.filter(
+/** The library key word a mark draws with, including marks saved under the old categories. */
+export const resolveKeywordId = (mark: HighlightMark): string | undefined => {
+  const id = mark.keywordId ?? (mark.category ? LEGACY_CATEGORY_TO_KEYWORD[mark.category] : undefined);
+  return id && KEY_WORD_BY_ID[id] ? id : undefined;
+};
+
+/**
+ * Add a mark, merging it with touching or overlapping marks of the same key
+ * word so dragging across "eternal" then "life" yields one "eternal life".
+ */
+export const mergeHighlight = (marks: HighlightMark[], next: Omit<HighlightMark, "id">): HighlightMark[] => {
+  const keywordId = next.keywordId;
+  const overlaps = marks.filter(
     (mark) =>
-      mark.category === next.category &&
-      (mark.visualStyle ?? "highlight-yellow") === (next.visualStyle ?? "highlight-yellow") &&
-      Boolean(mark.styleOnly) === Boolean(next.styleOnly)
-  );
-  const overlaps = sameCategory.filter(
-    (mark) => !(next.endOffset < mark.startOffset || next.startOffset > mark.endOffset)
+      resolveKeywordId(mark) === keywordId &&
+      !(next.endOffset < mark.startOffset || next.startOffset > mark.endOffset),
   );
 
   if (overlaps.length === 0) {
     return [...marks, { id: markId(), ...next }];
   }
 
-  const mergedStart = Math.min(next.startOffset, ...overlaps.map((mark) => mark.startOffset));
-  const mergedEnd = Math.max(next.endOffset, ...overlaps.map((mark) => mark.endOffset));
-
-  const remaining = marks.filter((mark) => !overlaps.some((overlap) => overlap.id === mark.id));
-
+  const remaining = marks.filter((mark) => !overlaps.includes(mark));
   return [
     ...remaining,
     {
       id: markId(),
       ...next,
-      startOffset: mergedStart,
-      endOffset: mergedEnd,
+      startOffset: Math.min(next.startOffset, ...overlaps.map((mark) => mark.startOffset)),
+      endOffset: Math.max(next.endOffset, ...overlaps.map((mark) => mark.endOffset)),
     },
   ];
 };
 
-export const useHighlight = (
-  marks: HighlightMark[],
-  setMarks: (marks: HighlightMark[]) => void
-) => {
-  const addHighlight = useCallback(
-    (
-      startOffset: number,
-      endOffset: number,
-      category: MarkCategory,
-      visualStyle: HighlightVisualStyle = "highlight-yellow",
-      options?: { styleOnly?: boolean }
-    ) => {
-      if (startOffset === endOffset) {
-        return;
-      }
-
-      const normalizedStart = Math.min(startOffset, endOffset);
-      const normalizedEnd = Math.max(startOffset, endOffset);
-
-      const next = mergeHighlight(marks, {
-        startOffset: normalizedStart,
-        endOffset: normalizedEnd,
-        category,
-        visualStyle,
-        styleOnly: Boolean(options?.styleOnly),
-      });
-
-      setMarks(next);
-    },
-    [marks, setMarks]
-  );
-
-  return { addHighlight };
-};
+/** Remove every mark that overlaps a range. */
+export const removeHighlightsInRange = (marks: HighlightMark[], start: number, end: number) =>
+  marks.filter((mark) => end <= mark.startOffset || start >= mark.endOffset);

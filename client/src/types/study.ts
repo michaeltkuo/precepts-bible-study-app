@@ -20,39 +20,18 @@ export type MarkCategory =
   | "time"
   | "contrast";
 
+/**
+ * A marked span of the passage. `keywordId` points into the key-word library.
+ * Marks saved before the library existed carry only a legacy `category`,
+ * which resolveKeywordId() maps onto a library key word.
+ */
 export type HighlightMark = {
   id: string;
   startOffset: number;
   endOffset: number;
-  category: MarkCategory;
-  visualStyle?: HighlightVisualStyle;
-  styleOnly?: boolean;
+  keywordId?: string;
+  /** @deprecated Legacy ten-category marks. */
+  category?: MarkCategory;
   note?: string;
   verseRef?: string;
 };
-
-export type HighlightVisualStyle =
-  | "highlight-yellow"
-  | "highlight-blue"
-  | "highlight-green"
-  | "highlight-orange"
-  | "highlight-pink"
-  | "highlight-purple"
-  | "highlight-red"
-  | "highlight-brown"
-  | "highlight-gray"
-  | "underline"
-  | "double-underline"
-  | "wavy-underline"
-  | "strike"
-  | "bold"
-  | "all-caps"
-  | "box"
-  | "double-box"
-  | "brackets"
-  | "left-bar"
-  | "left-pointer"
-  | "inline-pointers"
-  | "exclamation"
-  | "question"
-  | "shadow";

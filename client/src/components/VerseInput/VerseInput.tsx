@@ -1,13 +1,16 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { Button, cn, TextInput } from "../../design-system";
 import { parseUsfmReference } from "./parseUsfm";
 
 type VerseInputProps = {
   defaultValue?: string;
+  busy?: boolean;
   onSubmit: (normalizedReference: string, warning?: string) => void;
+  className?: string;
 };
 
-export const VerseInput = ({ defaultValue = "JHN.3.16-21", onSubmit }: VerseInputProps) => {
+export const VerseInput = ({ defaultValue = "JHN.3.16-21", busy, onSubmit, className }: VerseInputProps) => {
   const [value, setValue] = useState(defaultValue);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,20 +28,28 @@ export const VerseInput = ({ defaultValue = "JHN.3.16-21", onSubmit }: VerseInpu
   };
 
   return (
-    <form className="verse-input" onSubmit={handleSubmit}>
-      <label htmlFor="passage-ref">Passage</label>
-      <div className="verse-input-row">
-        <input
-          id="passage-ref"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder="JHN.3.16-21"
-          aria-describedby={error ? "passage-error" : undefined}
-        />
-        <button type="submit">Load</button>
-      </div>
+    <form className={cn("relative flex items-center gap-2", className)} onSubmit={handleSubmit}>
+      <label htmlFor="passage-ref" className="font-ui text-sm font-semibold text-ink-muted">
+        Passage
+      </label>
+      <TextInput
+        id="passage-ref"
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        placeholder="JHN.3.16-21"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? "passage-error" : undefined}
+        className="h-8 w-36 text-sm"
+      />
+      <Button type="submit" size="sm" variant="secondary" disabled={busy}>
+        {busy ? "Loading…" : "Load"}
+      </Button>
       {error ? (
-        <p id="passage-error" role="alert" className="input-error">
+        <p
+          id="passage-error"
+          role="alert"
+          className="absolute right-0 top-full z-10 mt-1 w-72 rounded-md border border-danger/30 bg-danger-soft px-3 py-2 font-ui text-sm text-ink shadow-float"
+        >
           {error}
         </p>
       ) : null}

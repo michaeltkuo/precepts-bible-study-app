@@ -1,0 +1,459 @@
+/*
+ * Precepts design system — "The Study Desk"
+ *
+ * Warm and bookish: an open study Bible on a desk. Paper surfaces, ink text,
+ * an oxblood ribbon-bookmark accent and gilt-edge highlights. Dark mode is the
+ * same desk by lamplight (walnut and warm ink), not an inversion.
+ *
+ * Every colour is a CSS variable defined on :root (light), then redefined for
+ * dark mode both for the OS preference and for an explicit data-theme choice.
+ * Tailwind utilities read those variables through @theme inline, so
+ * `bg-paper`, `text-ink`, `border-rule` etc. follow the theme.
+ */
+@import "tailwindcss";
+
+@import "@fontsource-variable/eb-garamond/wght.css";
+@import "@fontsource-variable/eb-garamond/wght-italic.css";
+@import "@fontsource-variable/literata/wght.css";
+@import "@fontsource-variable/literata/wght-italic.css";
+@import "@fontsource-variable/source-sans-3/wght.css";
+@import "bootstrap-icons/font/bootstrap-icons.min.css";
+
+/* Dark utilities (`dark:`) follow the same three-state rule as the tokens. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/* ── Tokens: light ("daylight on paper") ───────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --paper: #f5efe3; /* the page / desk */
+  --paper-raised: #fbf8f1; /* cards, panels, the open book */
+  --paper-sunken: #ece4d3; /* sidebar, insets, wells */
+  --paper-overlay: #fffdf8; /* popovers, toolbars */
+
+  /* Ink */
+  --ink: #2a211c;
+  --ink-muted: #66574a;
+  --ink-faint: #94846f;
+
+  /* Rules (borders, dividers) */
+  --rule: #ddd1ba;
+  --rule-strong: #c6b698;
+
+  /* Accent: oxblood ribbon bookmark */
+  --ribbon: #8b2a2e;
+  --ribbon-hover: #74221f;
+  --ribbon-ink: #fff8ef;
+  --ribbon-soft: #f3e1dc;
+
+  /* Secondary: gilt page edges */
+  --gilt: #9a7428;
+  --gilt-soft: #f2e7cc;
+
+  /* Semantic states (separate from the accent) */
+  --success: #3d6a37;
+  --success-soft: #e1ebd6;
+  --warn: #8f5a0e;
+  --warn-soft: #f6e6c4;
+  --danger: #a3312b;
+  --danger-soft: #f6dcd8;
+
+  --focus: #3a6ea5;
+  --shadow-color: 32 22 12;
+
+  /* Precept marking pencils: --pencil-X draws strokes and symbols,
+     --pencil-X-wash is the highlighter-style fill. */
+  --pencil-yellow: #a88300;
+  --pencil-yellow-wash: #f6e08a;
+  --pencil-orange: #bd5f17;
+  --pencil-orange-wash: #f8cfa1;
+  --pencil-red: #b0261f;
+  --pencil-red-wash: #f3bab3;
+  --pencil-pink: #bf3f7b;
+  --pencil-pink-wash: #f5c8dc;
+  --pencil-purple: #6d3c95;
+  --pencil-purple-wash: #ddc8ea;
+  --pencil-blue: #2456a4;
+  --pencil-blue-wash: #c0d2f0;
+  --pencil-sky: #2a80b2;
+  --pencil-sky-wash: #c8e4f3;
+  --pencil-green: #47872a;
+  --pencil-green-wash: #d0e6be;
+  --pencil-forest: #2d5e3e;
+  --pencil-forest-wash: #bcd6c3;
+  --pencil-brown: #7a5232;
+  --pencil-brown-wash: #e4cfb8;
+  --pencil-gray: #66625c;
+  --pencil-gray-wash: #dad6ce;
+  --pencil-black: #211e1b;
+  --pencil-black-wash: #cbc6bd;
+
+}
+
+/* ── Tokens: dark ("lamplight on walnut") ──────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #1a1512;
+    --paper-raised: #231d18;
+    --paper-sunken: #14100d;
+    --paper-overlay: #2c251f;
+    --ink: #ede3d2;
+    --ink-muted: #b2a38f;
+    --ink-faint: #7f715f;
+    --rule: #3a3028;
+    --rule-strong: #52463a;
+    --ribbon: #d9837b;
+    --ribbon-hover: #e69a92;
+    --ribbon-ink: #1a1512;
+    --ribbon-soft: #3b2421;
+    --gilt: #d6b366;
+    --gilt-soft: #392e18;
+    --success: #94bf8a;
+    --success-soft: #24301f;
+    --warn: #e2b064;
+    --warn-soft: #3a2c15;
+    --danger: #ea9187;
+    --danger-soft: #3d2220;
+    --focus: #8fb8e6;
+    --shadow-color: 0 0 0;
+    --pencil-yellow: #f0cd5a;
+    --pencil-yellow-wash: rgb(240 205 90 / 0.3);
+    --pencil-orange: #f2a868;
+    --pencil-orange-wash: rgb(240 160 95 / 0.28);
+    --pencil-red: #f08c82;
+    --pencil-red-wash: rgb(235 115 105 / 0.28);
+    --pencil-pink: #efa0c4;
+    --pencil-pink-wash: rgb(235 140 180 / 0.28);
+    --pencil-purple: #c9a8e6;
+    --pencil-purple-wash: rgb(185 145 225 / 0.3);
+    --pencil-blue: #93b3ef;
+    --pencil-blue-wash: rgb(120 155 235 / 0.3);
+    --pencil-sky: #92cfee;
+    --pencil-sky-wash: rgb(120 195 235 / 0.26);
+    --pencil-green: #a2d184;
+    --pencil-green-wash: rgb(140 200 110 / 0.26);
+    --pencil-forest: #83c299;
+    --pencil-forest-wash: rgb(100 170 125 / 0.28);
+    --pencil-brown: #d1a682;
+    --pencil-brown-wash: rgb(195 150 110 / 0.28);
+    --pencil-gray: #b6b1a8;
+    --pencil-gray-wash: rgb(170 165 155 / 0.28);
+    --pencil-black: #ebe3d6;
+    --pencil-black-wash: rgb(232 225 212 / 0.16);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #1a1512;
+  --paper-raised: #231d18;
+  --paper-sunken: #14100d;
+  --paper-overlay: #2c251f;
+  --ink: #ede3d2;
+  --ink-muted: #b2a38f;
+  --ink-faint: #7f715f;
+  --rule: #3a3028;
+  --rule-strong: #52463a;
+  --ribbon: #d9837b;
+  --ribbon-hover: #e69a92;
+  --ribbon-ink: #1a1512;
+  --ribbon-soft: #3b2421;
+  --gilt: #d6b366;
+  --gilt-soft: #392e18;
+  --success: #94bf8a;
+  --success-soft: #24301f;
+  --warn: #e2b064;
+  --warn-soft: #3a2c15;
+  --danger: #ea9187;
+  --danger-soft: #3d2220;
+  --focus: #8fb8e6;
+  --shadow-color: 0 0 0;
+  --pencil-yellow: #f0cd5a;
+  --pencil-yellow-wash: rgb(240 205 90 / 0.3);
+  --pencil-orange: #f2a868;
+  --pencil-orange-wash: rgb(240 160 95 / 0.28);
+  --pencil-red: #f08c82;
+  --pencil-red-wash: rgb(235 115 105 / 0.28);
+  --pencil-pink: #efa0c4;
+  --pencil-pink-wash: rgb(235 140 180 / 0.28);
+  --pencil-purple: #c9a8e6;
+  --pencil-purple-wash: rgb(185 145 225 / 0.3);
+  --pencil-blue: #93b3ef;
+  --pencil-blue-wash: rgb(120 155 235 / 0.3);
+  --pencil-sky: #92cfee;
+  --pencil-sky-wash: rgb(120 195 235 / 0.26);
+  --pencil-green: #a2d184;
+  --pencil-green-wash: rgb(140 200 110 / 0.26);
+  --pencil-forest: #83c299;
+  --pencil-forest-wash: rgb(100 170 125 / 0.28);
+  --pencil-brown: #d1a682;
+  --pencil-brown-wash: rgb(195 150 110 / 0.28);
+  --pencil-gray: #b6b1a8;
+  --pencil-gray-wash: rgb(170 165 155 / 0.28);
+  --pencil-black: #ebe3d6;
+  --pencil-black-wash: rgb(232 225 212 / 0.16);
+}
+
+/* ── Tailwind theme: map tokens to utilities ───────────────────────────── */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-paper-overlay: var(--paper-overlay);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ribbon: var(--ribbon);
+  --color-ribbon-hover: var(--ribbon-hover);
+  --color-ribbon-ink: var(--ribbon-ink);
+  --color-ribbon-soft: var(--ribbon-soft);
+  --color-gilt: var(--gilt);
+  --color-gilt-soft: var(--gilt-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-focus: var(--focus);
+
+}
+
+@theme {
+  /* Type: display (headings), scripture (reading), ui (controls & labels) */
+  --font-display: "EB Garamond Variable", "EB Garamond", Garamond, "Times New Roman", serif;
+  --font-scripture: "Literata Variable", Literata, Georgia, Cambria, serif;
+  --font-ui: "Source Sans 3 Variable", "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-scripture);
+
+  /* Type scale (UI ~ 1.2 ratio, display headings larger and looser) */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.3rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55rem;
+  --text-scripture: 1.1875rem;
+  --text-scripture--line-height: 2.4rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.625rem;
+  --text-xl--line-height: 2.1rem;
+  --text-2xl: 2.25rem;
+  --text-2xl--line-height: 2.6rem;
+  --text-3xl: 3rem;
+  --text-3xl--line-height: 3.25rem;
+
+  /* Radius: books have soft corners, not pills */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Elevation: paper lifting off the desk */
+  --shadow-page: 0 1px 2px rgb(var(--shadow-color) / 0.06), 0 2px 6px rgb(var(--shadow-color) / 0.05);
+  --shadow-float: 0 2px 4px rgb(var(--shadow-color) / 0.08), 0 10px 28px rgb(var(--shadow-color) / 0.14);
+
+  --ease-turn: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    font-family: var(--font-ui);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--gilt-soft);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+
+/* ── Key-word marks (see components/KeyWordMark.tsx) ───────────────────
+ * Three layers: the wash and CSS outlines on the mark itself, drawn outlines
+ * and symbols as positioned overlays above it, and the text (.kw-text,
+ * z-index 1) on top so pencil strokes never cover a letter. */
+@layer components {
+  .kw {
+    position: relative;
+    background: var(--kw-wash, transparent);
+    border-radius: 2px;
+    padding: 0.03em 0.1em;
+    margin: 0 -0.03em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    text-underline-offset: 0.24em;
+    text-decoration-skip-ink: none;
+  }
+
+  .kw[data-outline="box"] { border: 1.5px solid var(--kw-outline); }
+  .kw[data-outline="double"] { border: 3.5px double var(--kw-outline); }
+  .kw[data-outline="rounded"] { border: 1.5px solid var(--kw-outline); border-radius: 0.45em; }
+  .kw[data-outline="oval"] { border: 1.5px solid var(--kw-outline); border-radius: 999px; padding-inline: 0.32em; }
+  .kw[data-outline="dashed"] { border: 1.5px dashed var(--kw-outline); }
+  .kw[data-outline="brackets"] {
+    border-inline: 2px solid var(--kw-outline);
+    border-radius: 0.55em / 50%;
+    padding-inline: 0.28em;
+  }
+
+  .kw[data-underline] {
+    text-decoration-line: underline;
+    text-decoration-color: var(--kw-underline);
+    text-decoration-thickness: 1.5px;
+  }
+  .kw[data-underline="double"] { text-decoration-style: double; text-decoration-thickness: 1px; }
+  .kw[data-underline="dotted"] { text-decoration-style: dotted; text-decoration-thickness: 2px; }
+  .kw[data-underline="dashed"] { text-decoration-style: dashed; }
+  .kw[data-underline="wavy"] { text-decoration-style: wavy; text-decoration-thickness: 1px; }
+  .kw[data-underline="zigzag"],
+  .kw[data-underline="scallop"] { text-decoration-line: none; }
+
+  .kw-ul {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.32em;
+    height: 0.38em;
+    background: var(--kw-underline);
+    mask-repeat: repeat-x;
+    mask-size: 0.55em 100%;
+    pointer-events: none;
+  }
+  .kw-ul[data-pattern="zigzag"] {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 6'%3E%3Cpath d='M0 5 L2 1 L4 5 L6 1 L8 5' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E");
+  }
+  .kw-ul[data-pattern="scallop"] {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 6'%3E%3Cpath d='M0 1 Q2 7 4 1 Q6 7 8 1' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E");
+  }
+
+  .kw-text { position: relative; z-index: 1; }
+
+  .kw-shape {
+    position: absolute;
+    inset: -0.24em -0.34em;
+    pointer-events: none;
+  }
+  .kw-shape[data-pos="top"] { inset: -0.9em -0.3em auto; height: 0.95em; }
+  .kw-shape[data-pos="wrap"] { inset: -0.42em -0.42em -0.18em; }
+  .kw-shape svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .kw-shape path {
+    fill: none;
+    stroke: var(--kw-outline);
+    stroke-width: 1.6px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .kw-sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--kw-sym);
+    line-height: 1;
+    font-style: normal;
+    pointer-events: none;
+    user-select: none;
+  }
+  .kw-sym svg { width: 1em; height: 1em; overflow: visible; }
+  .kw-sym .g-stroke { fill: none; stroke: currentColor; stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+  .kw-sym .g-fill { fill: var(--kw-sym-fill); stroke: none; }
+  .kw-sym[data-glyph]::before {
+    content: attr(data-glyph);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .kw-sym[data-place="above"] {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translate(-50%, 0.2em);
+    font-size: 0.62em;
+  }
+  .kw-sym[data-place="over"] {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -52%);
+    font-size: 1.4em;
+    opacity: 0.8;
+  }
+  /* Filled icons and letters drawn behind a word stay faint enough to read through. */
+  .kw-sym[data-place="over"][data-kind="bi"] { font-size: 1.25em; opacity: 0.38; }
+  .kw-sym[data-place="over"][data-kind="t"] { font-size: 1.35em; opacity: 0.42; }
+  .kw-sym[data-place="before"],
+  .kw-sym[data-place="after"] { font-size: 0.72em; margin-inline: 0.14em; vertical-align: 0.08em; }
+
+  .kw-mod {
+    position: absolute;
+    inset: -0.12em -0.16em;
+    pointer-events: none;
+  }
+  .kw-mod svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .kw-mod line { stroke: var(--kw-mod); stroke-width: 1.75px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .kw-arrow {
+    position: absolute;
+    bottom: 0.1em;
+    font-size: 0.85em;
+    line-height: 1;
+    color: var(--kw-mod);
+    pointer-events: none;
+    user-select: none;
+  }
+  .kw-arrow[data-side="start"] { left: -0.55em; }
+  .kw-arrow[data-side="end"] { right: -0.55em; }
+
+  /* Fade marks outside the key word being traced, keep the text readable. */
+  .kw.is-dimmed { background: transparent; border-color: transparent; text-decoration-color: transparent; }
+  .kw.is-dimmed > .kw-shape,
+  .kw.is-dimmed > .kw-sym,
+  .kw.is-dimmed > .kw-mod,
+  .kw.is-dimmed > .kw-arrow,
+  .kw.is-dimmed > .kw-ul { opacity: 0.15; }
+}

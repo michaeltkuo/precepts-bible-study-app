@@ -27,7 +27,7 @@ describe("Sidebar", () => {
     );
 
     expect(screen.getByText("Session One")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("+ New Study"));
+    fireEvent.click(screen.getByRole("button", { name: "New study" }));
     expect(onNewStudy).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByText("Session One"));

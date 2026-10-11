@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { KEY_WORD_BY_ID, keyWordName } from "../marking/library";
 import type { HighlightMark } from "../types/study";
+import { resolveKeywordId } from "./useHighlight";
 
 type LlmRequest = {
   stage: number;
@@ -22,13 +24,18 @@ export const useLLM = () => {
         passageRef: input.passageRef,
         bibleAbbrev: "NASB2020",
         passageText: input.passageText,
-        highlights: input.highlights
-          .filter((item) => !item.styleOnly)
-          .map((item) => ({
-            phrase: input.passageText.slice(item.startOffset, item.endOffset),
-            category: item.category,
-            verseRef: item.verseRef,
-          })),
+        highlights: input.highlights.flatMap((item) => {
+          const keywordId = resolveKeywordId(item);
+          if (!keywordId) return [];
+          return [
+            {
+              phrase: input.passageText.slice(item.startOffset, item.endOffset),
+              // The prompt shows this as the mark's name, e.g. "believe (faith, truth)".
+              category: keyWordName(KEY_WORD_BY_ID[keywordId]),
+              verseRef: item.verseRef,
+            },
+          ];
+        }),
         stageNotes: input.stageNotes,
         denomination: input.denomination,
       };
